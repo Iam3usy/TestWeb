@@ -1,7 +1,7 @@
-// --- 1. CONFIGURATION URLs (URL ၃ ခု) ---
+// --- 1. CONFIGURATION URLs ---
 const WORKER_API_URL = "https://myhubapp.dathalay1.workers.dev/api/catalog";
 const STREAM_BASE_URL = "https://myhubapp.dathalay1.workers.dev/api/stream?file_id=";
-const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL"; // Google Apps Script URL ကို ဒီမှာထည့်ပါ
+const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
 
 // Global Data Stores
 let videoData = [];
@@ -15,22 +15,22 @@ async function loadDataFromWorker() {
         const data = await response.json();
         
         if (Array.isArray(data)) {
-            // Sheet schema: category_name, model_name, title, model, category, views, thumbnail, file_id, is_vip, model_image, category_image
+            // Sheet ထဲမှာ တချို့ကော်လံတွေ ဗလာဖြစ်နေရင်တောင် App ဆက်အလုပ်လုပ်ရန် Default တွေပေးခြင်း
             videoData = data.map(v => ({
-                category_name: v.category_name,
-                model_name: v.model_name,
-                title: v.title,
-                model: v.model,
-                category: v.category,
+                category_name: v.category_name || 'Uncategorized',
+                model_name: v.model_name || 'Unknown',
+                title: v.title || 'Untitled',
+                model: v.model || '',
+                category: v.category || '',
                 views: Number(v.views) || 0,
-                thumbnail: v.thumbnail,
-                file_id: v.file_id,
+                thumbnail: v.thumbnail || 'https://via.placeholder.com/300x169?text=No+Thumbnail',
+                file_id: v.file_id || '',
                 is_vip: v.is_vip === true || v.is_vip === "true" || v.is_vip === "TRUE",
-                model_image: v.model_image,
-                category_image: v.category_image
+                model_image: v.model_image || 'https://via.placeholder.com/150',
+                category_image: v.category_image || 'https://via.placeholder.com/150'
             }));
 
-            // နောက်ဆုံးတင်ထားတာ အပေါ်ဆုံးရောက်ရန် (Latest First)
+            // နောက်ဆုံးတင်ထားတာ အပေါ်ဆုံးရောက်ရန်
             videoData.reverse();
 
             processModels();
@@ -42,13 +42,17 @@ async function loadDataFromWorker() {
     }
 }
 
-// 3. Process Models (A to Z & Count)
+// 3. Process Models (A to Z & Count) - တူတာတွေကို တစ်ခုတည်း ပေါင်းပြခြင်း
 function processModels() {
     const map = new Map();
     videoData.forEach(v => {
-        if (v.model_name) {
+        if (v.model_name && v.model_name !== 'Unknown') {
             if (!map.has(v.model_name)) {
-                map.set(v.model_name, { name: v.model_name, image: v.model_image || '', count: 0 });
+                map.set(v.model_name, { 
+                    name: v.model_name, 
+                    image: v.model_image, 
+                    count: 0 
+                });
             }
             map.get(v.model_name).count++;
         }
@@ -56,13 +60,17 @@ function processModels() {
     modelData = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-// 4. Process Categories (A to Z & Count)
+// 4. Process Categories (A to Z & Count) - တူတာတွေကို တစ်ခုတည်း ပေါင်းပြခြင်း
 function processCategories() {
     const map = new Map();
     videoData.forEach(v => {
-        if (v.category_name) {
+        if (v.category_name && v.category_name !== 'Uncategorized') {
             if (!map.has(v.category_name)) {
-                map.set(v.category_name, { name: v.category_name, image: v.category_image || '', count: 0 });
+                map.set(v.category_name, { 
+                    name: v.category_name, 
+                    image: v.category_image, 
+                    count: 0 
+                });
             }
             map.get(v.category_name).count++;
         }
@@ -141,9 +149,12 @@ function renderPopularVideos() {
     });
 }
 
-// 8. Video Player Modal (Full Screen & 15s Skip)
+// 8. Video Player Modal
 function openPlayer(fileId) {
-    if (!fileId) return;
+    if (!fileId) {
+        alert("Video file ID not available.");
+        return;
+    }
     let streamUrl = STREAM_BASE_URL + fileId;
     
     let modal = document.getElementById('videoModal');
@@ -189,7 +200,7 @@ function skipTime(seconds) {
     }
 }
 
-// 9. Login Form Handler (Apps Script သို့ ချိတ်ဆက်ရန်)
+// 9. Login Form Handler
 async function handleLogin(event) {
     event.preventDefault();
     
@@ -207,28 +218,13 @@ async function handleLogin(event) {
         localStorage.setItem('device_id', deviceId);
     }
 
-    // Apps Script သို့ ပို့၍ စစ်ဆေးခြင်း (သို့မဟုတ် Local Testing)
-    try {
-        /* 
-        const res = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ username: usernameInput, vip_key: vipKeyInput, device_id: deviceId })
-        });
-        const result = await res.json();
-        if(!result.success) { alert(result.message); return; }
-        */
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('username', usernameInput);
+    localStorage.setItem('vip_key', vipKeyInput);
+    localStorage.setItem('expire_date', '2026-12-31');
+    localStorage.setItem('device_id', deviceId);
 
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('username', usernameInput);
-        localStorage.setItem('vip_key', vipKeyInput);
-        localStorage.setItem('expire_date', '2026-12-31');
-        localStorage.setItem('device_id', deviceId);
-
-        window.location.href = 'account.html';
-    } catch (err) {
-        console.error("Login Error:", err);
-        alert("Login failed. Please check connection.");
-    }
+    window.location.href = 'account.html';
 }
 
 // 10. Load Account Info
@@ -277,7 +273,7 @@ function toggleSidebar() {
     if (sidebar) sidebar.classList.toggle('open');
 }
 
-// Initialize on Load & Dynamic Sidebar Login State
+// Initialize on Load
 document.addEventListener("DOMContentLoaded", () => {
     loadDataFromWorker();
 
@@ -286,4 +282,4 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isLoggedIn && authItem) {
         authItem.innerHTML = `<a href="account.html"><i class="fa-solid fa-user"></i> Account</a>`;
     }
-});
+});                         
