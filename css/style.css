@@ -1,0 +1,288 @@
+/* ==========================================
+   MY HUB - GLOBAL STYLES & VARIABLES
+   ========================================== */
+:root {
+    --bg-color: #0f0f12;
+    --card-bg: #1a1a24;
+    --accent-color: #ff2a5f;
+    --accent-hover: #e02350;
+    --text-color: #ffffff;
+    --text-secondary: #a0a0b0;
+    --border-color: #282836;
+    --sidebar-width: 250px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ==========================================
+   SIDEBAR STYLES
+   ========================================== */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: #14141d;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.sidebar.closed {
+    transform: translateX(-100%);
+}
+
+.brand {
+    padding: 20px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: none;
+}
+
+.menu-list {
+    list-style: none;
+    padding: 15px 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.menu-item a {
+    padding: 12px 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.menu-item a:hover, 
+.menu-item.active a {
+    color: var(--text-color);
+    background-color: #232332;
+    border-left: 4px solid var(--accent-color);
+}
+
+/* ==========================================
+   MAIN CONTENT AREA
+   ========================================== */
+.main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    padding: 25px 30px;
+    width: calc(100% - var(--sidebar-width));
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.main-content.expanded {
+    margin-left: 0;
+    width: 100%;
+}
+
+.header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 1.1rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+    background: #232332;
+}
+
+/* VIP Banner Styles */
+.vip-banner {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.vip-banner h2 {
+    color: #f1c40f;
+    margin-bottom: 8px;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.vip-banner p {
+    color: #aaa;
+    font-size: 13px;
+}
+
+/* Empty Data Message */
+.empty-msg {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    padding: 20px 0;
+    text-align: center;
+    width: 100%;
+}
+
+/* ==========================================
+   GRID & VIDEO CARD STYLES (INDEX & VIP တူညီရန်)
+   ========================================== */
+.video-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    max-width: 650px !important;
+    margin: 0 auto !important;
+    padding: 15px !important;
+}
+
+.video-card {
+    width: 100% !important;
+    background-color: var(--card-bg) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    border: 1px solid var(--border-color) !important;
+    cursor: pointer !important;
+    display: flex !important;
+    flex-direction: column !important;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.video-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-color) !important;
+}
+
+.thumbnail-box {
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    background-color: #000 !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.thumbnail-box img,
+.thumbnail-box video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 0 !important;
+    border: none !important;
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+}
+
+.view-badge {
+    position: absolute !important;
+    bottom: 8px !important;
+    right: 8px !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: #fff !important;
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    font-size: 0.75rem !important;
+    z-index: 2 !important;
+}
+
+.video-info {
+    padding: 12px !important;
+}
+
+.video-info h3 {
+    font-size: 0.95rem !important;
+    color: var(--text-color) !important;
+    line-height: 1.4 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+}
+
+/* ==========================================
+   MODEL & CATEGORY CONTAINER STYLES
+   ========================================== */
+#modelContainer, #model-container, #categoryContainer, #category-container, .card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+    gap: 12px !important;
+    padding: 10px 0 !important;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN (MOBILE & TABLET)
+   ========================================== */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .close-btn {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px 15px;
+    }
+
+    #modelContainer, #model-container, #categoryContainer, #category-container, .card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+        gap: 10px !important;
+    }
+      }
