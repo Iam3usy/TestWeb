@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Hub - Search</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .search-box { margin-bottom: 25px; display: flex; gap: 10px; }
+        .search-input { flex: 1; padding: 12px; background: var(--card-bg); border: 1px solid var(--border-color); color: white; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand">
+            <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
+            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
+            <li class="menu-item"><a href="index.html?sort=popular"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li class="menu-item active"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li class="menu-item"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+            <li class="menu-item"><a href="javascript:void(0)" onclick="checkVipAccess()"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="mainContent">
+        <div class="header">
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <h1>Search Videos</h1>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="Title, Model နာမည် သို့မဟုတ် #Tag ဖြင့် ရှာရန်..." oninput="handleSearch()">
+        </div>
+
+        <div class="video-grid" id="searchResultContainer"></div>
+    </main>
+    
+    <script src="js/app.js"></script>
+    <script>
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const container = document.getElementById('searchResultContainer');
+            container.innerHTML = '';
+
+            if (!query) return;
+
+            // VIP Content မပါသော ဗီဒီယိုများကိုသာ ရှာဖွေမည်
+            const publicVideos = videoData.filter(v => !v.isVip);
+            
+            const results = publicVideos.filter(video => {
+                const titleMatch = (video.title || '').toLowerCase().includes(query);
+                const tagMatch = (video.tags || []).some(tag => tag.toLowerCase().includes(query));
+                return titleMatch || tagMatch;
+            });
+
+            if (results.length === 0) {
+                container.innerHTML = '<p class="empty-msg">ရှာဖွေမှု ရလဒ် မရှိပါ။</p>';
+                return;
+            }
+
+            results.forEach(video => {
+    container.innerHTML += `
+        <div class="video-card" onclick="openPlayer('${video.stream_url}')" style="cursor:pointer;">
+            <div class="thumbnail-box">
+                <img src="${video.thumbnail || ''}" alt="${video.title || ''}">
+                <span class="view-badge"><i class="fa-solid fa-eye"></i> ${video.views || 0}</span>
+            </div>
+            <div class="video-info">
+                <h3>${video.title || ''}</h3>
+            </div>
+        </div>
+    `;
+});
+        }
+    </script>
+</body>
+</html>

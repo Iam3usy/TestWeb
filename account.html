@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - My Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .account-box {
+            max-width: 400px;
+            margin: 40px auto;
+            background: #1e1e2f;
+            padding: 30px;
+            border-radius: 12px;
+            color: #fff;
+            text-align: center;
+        }
+        .account-box h2 {
+            color: #2ed573;
+            margin-bottom: 15px;
+        }
+        .logout-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand">
+            <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
+            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
+            <li class="menu-item"><a href="index.html?sort=popular"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li class="menu-item active"><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="mainContent">
+        <div class="header">
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <h1>My Account</h1>
+        </div>
+
+        <div class="account-box">
+            <h2><i class="fa-solid fa-user-check"></i> Welcome, <span id="accUsername">-</span></h2>
+            <p>Your VIP Access is Active.</p>
+            <button class="logout-btn" id="logoutBtn">Logout (အကောင့်ထွက်ရန်)</button>
+        </div>
+    </main>
+
+    <script>
+        const username = localStorage.getItem('username') || 'Guest';
+        document.getElementById('accUsername').innerText = username;
+
+        document.getElementById('logoutBtn').onclick = function() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        };
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.getElementById('mainContent');
+            if (sidebar) sidebar.classList.toggle('open');
+            if (mainContent) mainContent.classList.toggle('expanded');
+        }
+    </script>
+</body>
+</html>
