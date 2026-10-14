@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Hub - Latest Videos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Sidebar Menu -->
+    <nav class="sidebar">
+        <div class="brand">
+            <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
+            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
+            <li class="menu-item"><a href="index.html?sort=popular"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li class="menu-item" id="sidebarAuthItem">
+                <a href="account.html" id="sidebarAuthLink"><i class="fa-solid fa-user"></i> Account</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="header">
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <h1 id="pageTitle">Latest Videos</h1>
+        </div>
+
+        <div style="padding: 15px;">
+            <div class="video-grid" id="videoContainer"></div>
+        </div>
+    </main>
+
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="js/app.js?v=999"></script>
+    <script>
+        const isLoggedIn = localStorage.getItem('isLoggedIn') || localStorage.getItem('userToken');
+        const sidebarAuthItem = document.getElementById('sidebarAuthItem');
+        const sidebarAuthLink = document.getElementById('sidebarAuthLink');
+        if (!isLoggedIn) {
+            if (sidebarAuthItem && sidebarAuthLink) {
+                sidebarAuthLink.href = 'login.html';
+                sidebarAuthLink.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Login';
+            }
+        }
+    </script>
+</body>
+</html>
