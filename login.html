@@ -6,94 +6,52 @@
     <title>Login - My Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .login-container {
-            max-width: 400px;
-            margin: 60px auto;
-            background: #1e1e2f;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            color: #fff;
-            text-align: center;
-        }
-        .login-container h2 {
-            margin-bottom: 20px;
-            color: #f1c40f;
-        }
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #a4b0be;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            background: #2f2f42;
-            border: 1px solid #444;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: #ff4757;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .viber-btn {
-            width: 100%;
-            padding: 12px;
-            background: #7360f2;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            text-decoration: none;
-            display: block;
-            box-sizing: border-box;
-        }
-    </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2><i class="fa-solid fa-crown"></i> VIP Access Login</h2>
-        <form id="loginForm">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" id="username" placeholder="Enter your username" required>
-            </div>
-            <div class="form-group">
-                <label>VIP Key</label>
-                <input type="password" id="vipKey" placeholder="Enter your VIP key" required>
-            </div>
-            <button type="submit" class="login-btn">Login</button>
-        </form>
-        <a href="https://t.me/your_telegram_username" class="viber-btn"><i class="fa-solid fa-key"></i> Get VIP Key</a>
-    </div>
 
-    <script>
-        document.getElementById('loginForm').onsubmit = function(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            localStorage.setItem('username', username);
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('isVip', 'true');
-            window.location.href = 'vip.html';
-        };
-    </script>
+    <!-- Sidebar Menu -->
+    <nav class="sidebar" id="sidebarMenu">
+        <div class="brand">
+            <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
+            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
+            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li class="menu-item active" id="sidebarAuthItem"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <h1>Login</h1>
+        </div>
+
+        <div style="display: flex; justify-content: center; align-items: center; padding: 40px 20px;">
+            <form onsubmit="handleLogin(event)" style="background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px;">
+                <h2 style="text-align: center; font-size: 1.4rem; margin-bottom: 10px;">Account Login</h2>
+                
+                <div>
+                    <label style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">Username</label>
+                    <input type="text" id="usernameInput" required style="width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">VIP Key</label>
+                    <input type="password" id="vipKeyInput" required style="width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+                </div>
+
+                <button type="submit" style="background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;">Login</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
 </body>
 </html>
