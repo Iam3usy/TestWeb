@@ -6,77 +6,77 @@
     <title>Account - My Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .account-box {
-            max-width: 400px;
-            margin: 40px auto;
-            background: #1e1e2f;
-            padding: 30px;
-            border-radius: 12px;
-            color: #fff;
-            text-align: center;
-        }
-        .account-box h2 {
-            color: #2ed573;
-            margin-bottom: 15px;
-        }
-        .logout-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-    </style>
 </head>
 <body>
-    <nav class="sidebar">
+
+    <!-- Sidebar Menu -->
+    <nav class="sidebar" id="sidebarMenu">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
             <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
             <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="index.html?sort=popular"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
             <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
             <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
             <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li class="menu-item active"><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
+            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li class="menu-item active" id="sidebarAuthItem"><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
         </ul>
     </nav>
 
-    <main class="main-content" id="mainContent">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="header">
             <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1>My Account</h1>
+            <h1>Account Profile</h1>
         </div>
 
-        <div class="account-box">
-            <h2><i class="fa-solid fa-user-check"></i> Welcome, <span id="accUsername">-</span></h2>
-            <p>Your VIP Access is Active.</p>
-            <button class="logout-btn" id="logoutBtn">Logout (အကောင့်ထွက်ရန်)</button>
+        <div style="display: flex; justify-content: center; padding: 30px 20px;">
+            <div style="background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 20px; align-items: center;">
+                
+                <!-- Profile Picture Section -->
+                <div style="position: relative; width: 90px; height: 90px;">
+                    <img id="profileAvatarImg" src="https://via.placeholder.com/90" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
+                    <label for="avatarFile" style="position: absolute; bottom: 0; right: 0; background: var(--accent-color); color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 12px;">
+                        <i class="fa-solid fa-camera"></i>
+                    </label>
+                    <input type="file" id="avatarFile" accept="image/*" style="display: none;" onchange="changeProfileAvatar(event)">
+                </div>
+
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Username</label>
+                        <input type="text" id="accUsername" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">VIP Key</label>
+                        <input type="text" id="accVipKey" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Expire Date</label>
+                        <input type="text" id="accExpireDate" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Device ID</label>
+                        <input type="text" id="accDeviceId" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="width: 100%; display: flex; gap: 10px; margin-top: 10px;">
+                    <a href="#" style="flex: 1; text-align: center; background: #2ed573; color: #fff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">Renew Account</a>
+                    <button onclick="handleLogout()" style="flex: 1; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">Logout</button>
+                </div>
+
+            </div>
         </div>
     </main>
 
-    <script>
-        const username = localStorage.getItem('username') || 'Guest';
-        document.getElementById('accUsername').innerText = username;
-
-        document.getElementById('logoutBtn').onclick = function() {
-            localStorage.clear();
-            window.location.href = 'login.html';
-        };
-
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const mainContent = document.getElementById('mainContent');
-            if (sidebar) sidebar.classList.toggle('open');
-            if (mainContent) mainContent.classList.toggle('expanded');
-        }
-    </script>
+    <script src="js/app.js"></script>
 </body>
 </html>
