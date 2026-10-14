@@ -5,164 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIP Zone - My Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Video.js Stylesheet -->
-    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/style.css">
-
-    <!-- Container စတိုင်လ်များ -->
-    <style>
-        .vip-lock-container {
-            background: #1e1e2f;
-            border: 1px solid #ff4757;
-            padding: 40px 20px;
-            border-radius: 12px;
-            text-align: center;
-            max-width: 500px;
-            margin: 40px auto;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            color: #fff;
-            font-family: sans-serif;
-        }
-
-        .vip-lock-container i {
-            font-size: 50px;
-            color: #ff4757;
-            margin-bottom: 15px;
-        }
-
-        .vip-lock-container h3 {
-            margin-bottom: 10px;
-            font-size: 20px;
-            color: #fff;
-        }
-
-        .vip-lock-container p {
-            font-size: 14px;
-            color: #a4b0be;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-
-        .lock-btn-container {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .lock-btn {
-            flex: 1;
-            max-width: 160px;
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 12px 15px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .lock-btn.secondary {
-            background: #2ed573;
-        }
-
-        .lock-btn:hover {
-            opacity: 0.9;
-        }
-    </style>
 </head>
 <body>
-    <!-- Sidebar Menu -->
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebarMenu">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
             <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
             <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="index.html?sort=popular"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
             <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
             <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item active"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
             <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <!-- Login အခြေအနေအပေါ်မူတည်ပြီး ပြောင်းလဲမည့် မီနူး -->
-            <li class="menu-item" id="sidebarAuthItem">
-                <a href="account.html" id="sidebarAuthLink"><i class="fa-solid fa-user"></i> Account</a>
-            </li>
+            <li class="menu-item active"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li class="menu-item" id="sidebarAuthItem"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
         </ul>
     </nav>
 
-    <!-- Main Content -->
-    <main class="main-content" id="mainContent">
+    <main class="main-content">
         <div class="header">
             <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1>VIP Exclusive Zone</h1>
+            <h1>VIP Zone</h1>
         </div>
 
-        <div style="padding: 20px;">
-            <div class="vip-banner">
-                <h2><i class="fa-solid fa-crown"></i> Welcome, <span id="welcomeUser">-</span>!</h2>
-                <p>ဤနေရာတွင် VIP အဖွဲ့ဝင်များအတွက် သီးသန့်တင်ဆက်ပေးထားသော ဗီဒီယိုများကို ကြည့်ရှုနိုင်ပါသည်။</p>
-            </div>
-
-            <!-- Login ရှိမရှိ အပေါ်မူတည်၍ Container သို့မဟုတ် ဗီဒီယိုဂရစ် ပြောင်းလဲမည့်နေရာ -->
-            <div id="dynamicContainer">
-                <!-- Video Cards Grid (Login ရှိမှ app.js မှ ဤနေရာတွင် ဗီဒီယိုများ ဝင်လာမည်) -->
-                <div class="video-grid" id="vipVideoContainer"></div>
-            </div>
-        </div>
+        <div id="vipContainer"></div>
     </main>
 
-    <!-- Video.js Script နှင့် app.js -->
-    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
-    <script src="js/app.js?v=999"></script>
-
-    <!-- Login စစ်ဆေးခြင်း နှင့် Container အစားထိုးခြင်း Script -->
+    <script src="js/app.js"></script>
     <script>
-    const isLoggedIn = localStorage.getItem('isLoggedIn') || localStorage.getItem('userToken');
-    const sidebarAuthItem = document.getElementById('sidebarAuthItem');
-    const sidebarAuthLink = document.getElementById('sidebarAuthLink');
-    const dynamicContainer = document.getElementById('dynamicContainer');
+        function renderVipPage() {
+            const container = document.getElementById('vipContainer');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-    if (!isLoggedIn) {
-        // ၁။ Login မရှိရင် Sidebar မှာ Account အစား Login လို့ပြောင်းမယ်[span_0](start_span)[span_0](end_span)
-        if (sidebarAuthItem && sidebarAuthLink) {
-            sidebarAuthLink.href = 'login.html';
-            sidebarAuthLink.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Login';
-        }
-
-        // ၂။ VIP စာမျက်နှာထဲမှာ တန်းပြီး login.html သို့ မသွားဘဲ Lock Container ကိုသာ တိုက်ရိုက်ပြမယ်[span_1](start_span)[span_1](end_span)
-        if (dynamicContainer) {
-            dynamicContainer.innerHTML = `
-                <div class="vip-lock-container">
-                    <i class="fa-solid fa-lock"></i>
-                    <h3>VIP Access လိုအပ်ပါသည်</h3>
-                    <p>ဤ VIP Zone ရှိ အထူးသီးသန့် ဗီဒီယိုများကို ကြည့်ရှုရန် ကျေးဇူးပြု၍ အကောင့်ဝင်ပါ (သို့မဟုတ်) အကောင့်အသစ် ဝယ်ယူပါ။</p>
-                    <div class="lock-btn-container">
-                        <button class="lock-btn" id="goToLogin">Login သို့</button>
-                        <button class="lock-btn secondary" id="buyAccount">Account ဝယ်ရန်</button>
+            if (!isLoggedIn) {
+                container.innerHTML = `
+                    <div style="display:flex; justify-content:center; align-items:center; padding:50px 20px;">
+                        <div style="background:var(--card-bg); padding:30px; border-radius:8px; border:1px solid var(--border-color); text-align:center; max-width:400px; width:100%; display:flex; flex-direction:column; gap:15px;">
+                            <i class="fa-solid fa-lock" style="font-size:40px; color:var(--accent-color);"></i>
+                            <h3>You are not logged in</h3>
+                            <p style="color:var(--text-secondary); font-size:14px;">Please login to access VIP content.</p>
+                            <a href="login.html" style="background:var(--accent-color); color:#fff; padding:12px; border-radius:6px; text-decoration:none; font-weight:bold;">Login Now</a>
+                            <a href="#" style="background:transparent; color:#fff; border:1px solid var(--border-color); padding:12px; border-radius:6px; text-decoration:none; font-weight:bold;">Buy VIP Key</a>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+                return;
+            }
 
-            // ခလုတ်များ၏ လုပ်ဆောင်ချက်များ
-            document.getElementById('goToLogin').onclick = function() {
-                window.location.href = 'login.html';
-            };
+            // Render VIP Videos Grid
+            container.innerHTML = `<div id="videoContainer" class="video-grid" style="padding:20px;"></div>`;
+            const videoContainer = document.getElementById('videoContainer');
+            
+            const vipVideos = videoData.filter(v => v.is_vip === true);
+            if (vipVideos.length === 0) {
+                videoContainer.innerHTML = '<p style="text-align:center; color:#a4b0be; grid-column:1/-1;">No VIP videos available</p>';
+                return;
+            }
 
-            document.getElementById('buyAccount').onclick = function() {
-                window.location.href = 'https://t.me/your_telegram_username'; // လိုအပ်သော Telegram လင့်ခ်သို့ ပြောင်းရန်
-            };
+            vipVideos.forEach(v => {
+                videoContainer.innerHTML += `
+                    <div class="video-card" onclick="openPlayer('${v.file_id}')">
+                        <div class="thumbnail-box">
+                            <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
+                            <span class="crown-badge" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.7); padding:4px 6px; border-radius:4px;"><i class="fa-solid fa-crown" style="color:#f1c40f;"></i></span>
+                            <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
+                        </div>
+                        <div class="video-info"><h3>${v.title}</h3></div>
+                    </div>
+                `;
+            });
         }
-    } else {
-        // ၃။ Login ရှိနေရင်တော့ Sidebar မှာ Account လို့ပြမယ်၊ ဗီဒီယို Container လည်း ပုံမှန်ပြမယ်[span_2](start_span)[span_2](end_span)
-        if (sidebarAuthItem && sidebarAuthLink) {
-            sidebarAuthLink.href = 'account.html';
-            sidebarAuthLink.innerHTML = '<i class="fa-solid fa-user"></i> Account';
-        }
-    }
     </script>
 </body>
 </html>
