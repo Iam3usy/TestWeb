@@ -75,50 +75,5 @@
     </main>
 
     <script src="js/app.js"></script>
-    <script>
-        // Render Models Page Logic
-        function renderModelsPage() {
-            const container = document.getElementById('modelContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            if (modelData.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#a4b0be; grid-column:1/-1;">No models found</p>';
-                return;
-            }
-
-            modelData.forEach(m => {
-                container.innerHTML += `
-                    <div class="item-card" onclick="filterByModel('${m.name}')">
-                        <img src="${m.image || 'https://via.placeholder.com/150'}" alt="${m.name}">
-                        <span class="count-badge">${m.count}</span>
-                        <div class="item-info">${m.name}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function filterByModel(modelName) {
-            document.getElementById('pageTitle').innerText = modelName;
-            const container = document.getElementById('modelContainer');
-            container.className = 'video-grid';
-            container.innerHTML = '';
-
-            const filtered = videoData.filter(v => v.model_name === modelName);
-            filtered.forEach(v => {
-                let crown = v.is_vip ? `<span class="crown-badge"><i class="fa-solid fa-crown" style="color:#f1c40f;"></i></span>` : '';
-                container.innerHTML += `
-                    <div class="video-card" onclick="openPlayer('${v.file_id}')">
-                        <div class="thumbnail-box">
-                            <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
-                            ${crown}
-                            <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
-                        </div>
-                        <div class="video-info"><h3>${v.title}</h3></div>
-                    </div>
-                `;
-            });
-        }
-    </script>
 </body>
 </html>
