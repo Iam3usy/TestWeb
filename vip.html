@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIP Zone - My Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://vjs.zencdn.net/8.10.0/video-js.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <nav class="sidebar" id="sidebarMenu">
+
+    <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
             <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
@@ -24,59 +26,19 @@
         </ul>
     </nav>
 
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
         <div class="header">
             <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1>VIP Zone</h1>
         </div>
 
-        <div id="vipContainer"></div>
+        <!-- VIP Videos Container -->
+        <div id="videoContainer" class="video-grid">
+            <p style="text-align: center; color: #a4b0be; padding: 40px;">Checking VIP access...</p>
+        </div>
     </main>
 
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
-    <script>
-        function renderVipPage() {
-            const container = document.getElementById('vipContainer');
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-
-            if (!isLoggedIn) {
-                container.innerHTML = `
-                    <div style="display:flex; justify-content:center; align-items:center; padding:50px 20px;">
-                        <div style="background:var(--card-bg); padding:30px; border-radius:8px; border:1px solid var(--border-color); text-align:center; max-width:400px; width:100%; display:flex; flex-direction:column; gap:15px;">
-                            <i class="fa-solid fa-lock" style="font-size:40px; color:var(--accent-color);"></i>
-                            <h3>You are not logged in</h3>
-                            <p style="color:var(--text-secondary); font-size:14px;">Please login to access VIP content.</p>
-                            <a href="login.html" style="background:var(--accent-color); color:#fff; padding:12px; border-radius:6px; text-decoration:none; font-weight:bold;">Login Now</a>
-                            <a href="#" style="background:transparent; color:#fff; border:1px solid var(--border-color); padding:12px; border-radius:6px; text-decoration:none; font-weight:bold;">Buy VIP Key</a>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            // Render VIP Videos Grid
-            container.innerHTML = `<div id="videoContainer" class="video-grid" style="padding:20px;"></div>`;
-            const videoContainer = document.getElementById('videoContainer');
-            
-            const vipVideos = videoData.filter(v => v.is_vip === true);
-            if (vipVideos.length === 0) {
-                videoContainer.innerHTML = '<p style="text-align:center; color:#a4b0be; grid-column:1/-1;">No VIP videos available</p>';
-                return;
-            }
-
-            vipVideos.forEach(v => {
-                videoContainer.innerHTML += `
-                    <div class="video-card" onclick="openPlayer('${v.file_id}')">
-                        <div class="thumbnail-box">
-                            <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
-                            <span class="crown-badge" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.7); padding:4px 6px; border-radius:4px;"><i class="fa-solid fa-crown" style="color:#f1c40f;"></i></span>
-                            <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
-                        </div>
-                        <div class="video-info"><h3>${v.title}</h3></div>
-                    </div>
-                `;
-            });
-        }
-    </script>
 </body>
 </html>
