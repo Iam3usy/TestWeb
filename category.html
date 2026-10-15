@@ -5,18 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Categories - My Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://vjs.zencdn.net/8.10.0/video-js.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
-        @media(max-width: 600px) { .grid-3 { grid-template-columns: repeat(2, 1fr); } }
-        .item-card { background: var(--card-bg); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; position: relative; }
-        .item-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
-        .item-info { padding: 10px; text-align: center; font-size: 14px; font-weight: 600; }
-        .count-badge { position: absolute; bottom: 45px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; padding: 2px 6px; font-size: 11px; border-radius: 4px; }
-    </style>
 </head>
 <body>
-    <nav class="sidebar" id="sidebarMenu">
+
+    <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
             <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
@@ -32,60 +26,17 @@
         </ul>
     </nav>
 
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
         <div class="header">
             <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1 id="pageTitle">Categories</h1>
         </div>
-        <div id="categoryContainer" class="grid-3">
-            <p style="text-align:center; color:#a4b0be; grid-column:1/-1;">Loading categories...</p>
-        </div>
+
+        <div id="categoryContainer" style="display: grid; padding: 15px;"></div>
+        <div id="videoContainer" class="video-grid"></div>
     </main>
 
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
-    <script>
-        function renderCategoriesPage() {
-            const container = document.getElementById('categoryContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            if (categoryData.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#a4b0be; grid-column:1/-1;">No categories found</p>';
-                return;
-            }
-
-            categoryData.forEach(c => {
-                container.innerHTML += `
-                    <div class="item-card" onclick="filterByCategory('${c.name}')">
-                        <img src="${c.image || 'https://via.placeholder.com/150'}" alt="${c.name}">
-                        <span class="count-badge">${c.count}</span>
-                        <div class="item-info">${c.name}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function filterByCategory(catName) {
-            document.getElementById('pageTitle').innerText = catName;
-            const container = document.getElementById('categoryContainer');
-            container.className = 'video-grid';
-            container.innerHTML = '';
-
-            const filtered = videoData.filter(v => v.category_name === catName);
-            filtered.forEach(v => {
-                let crown = v.is_vip ? `<span class="crown-badge"><i class="fa-solid fa-crown" style="color:#f1c40f;"></i></span>` : '';
-                container.innerHTML += `
-                    <div class="video-card" onclick="openPlayer('${v.file_id}')">
-                        <div class="thumbnail-box">
-                            <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
-                            ${crown}
-                            <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
-                        </div>
-                        <div class="video-info"><h3>${v.title}</h3></div>
-                    </div>
-                `;
-            });
-        }
-    </script>
 </body>
 </html>
