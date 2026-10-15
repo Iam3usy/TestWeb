@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Hub - Latest Videos</title>
+    <title>My Hub - Streaming Platform</title>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Video.js CSS -->
     <link rel="stylesheet" href="https://vjs.zencdn.net/8.10.0/video-js.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -34,10 +37,10 @@
             <h1 id="pageTitle">Latest Videos</h1>
         </div>
 
-        <!-- Video Container Grid / List -->
-        <div id="videoContainer" class="video-grid">
-            <p style="text-align: center; color: #a4b0be; padding: 40px;">Loading videos...</p>
-        </div>
+        <!-- Containers for Different Pages -->
+        <div id="videoContainer" class="video-grid"></div>
+        <div id="modelContainer" class="item-grid" style="display:none;"></div>
+        <div id="categoryContainer" class="item-grid" style="display:none;"></div>
     </main>
 
     <!-- Video.js Script -->
