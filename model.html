@@ -5,50 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Models - My Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://vjs.zencdn.net/8.10.0/video-js.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            padding: 20px;
-        }
-        @media(max-width: 600px) {
-            .grid-3 { grid-template-columns: repeat(2, 1fr); }
-        }
-        .item-card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            position: relative;
-        }
-        .item-card img {
-            width: 100%;
-            aspect-ratio: 1/1;
-            object-fit: cover;
-        }
-        .item-info {
-            padding: 10px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .count-badge {
-            position: absolute;
-            bottom: 45px;
-            right: 8px;
-            background: rgba(0,0,0,0.8);
-            color: #fff;
-            padding: 2px 6px;
-            font-size: 11px;
-            border-radius: 4px;
-        }
-    </style>
 </head>
 <body>
-    <nav class="sidebar" id="sidebarMenu">
+
+    <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
             <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
@@ -64,16 +26,18 @@
         </ul>
     </nav>
 
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
         <div class="header">
             <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1 id="pageTitle">Models</h1>
         </div>
-        <div id="modelContainer" class="grid-3">
-            <p style="text-align:center; color:#a4b0be; grid-column:1/-1;">Loading models...</p>
-        </div>
+
+        <!-- Model Container (app.js က renderModelsDirect သို့မဟုတ် renderContent ကိုသုံးမည်) -->
+        <div id="modelContainer" style="display: grid; padding: 15px;"></div>
+        <div id="videoContainer" class="video-grid"></div>
     </main>
 
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
