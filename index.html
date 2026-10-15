@@ -42,16 +42,5 @@
 
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js?v=999"></script>
-    <script>
-        const isLoggedIn = localStorage.getItem('isLoggedIn') || localStorage.getItem('userToken');
-        const sidebarAuthItem = document.getElementById('sidebarAuthItem');
-        const sidebarAuthLink = document.getElementById('sidebarAuthLink');
-        if (!isLoggedIn) {
-            if (sidebarAuthItem && sidebarAuthLink) {
-                sidebarAuthLink.href = 'login.html';
-                sidebarAuthLink.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Login';
-            }
-        }
-    </script>
 </body>
 </html>
