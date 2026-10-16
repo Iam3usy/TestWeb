@@ -119,8 +119,24 @@
             }
             document.getElementById('accUsername').value = localStorage.getItem('username') || '';
             document.getElementById('accVipKey').value = localStorage.getItem('vip_key') || '';
-            document.getElementById('accExpireDate').value = localStorage.getItem('expire_date') || 'Lifetime / Not specified';
+            
+            // ရက်စွဲကို DD.MM.YYYY ပုံစံသို့ ပြောင်းလဲဖော်ပြခြင်း
+            const rawExpireDate = localStorage.getItem('expire_date');
+            if (rawExpireDate) {
+                const dateObj = new Date(rawExpireDate);
+                if (!isNaN(dateObj)) {
+                    const day = String(dateObj.getDate()).padStart(2, '0');
+                    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const year = dateObj.getFullYear();
+                    document.getElementById('accExpireDate').value = `${day}.${month}.${year}`;
+                } else {
+                    document.getElementById('accExpireDate').value = rawExpireDate;
+                }
+            } else {
+                document.getElementById('accExpireDate').value = 'Lifetime / Not specified';
+            }
 
+            // သိမ်းထားသော Profile ပုံ ရှိမရှိ စစ်ဆေးပြီး ပေါ်စေရန်
             const savedAvatar = localStorage.getItem('profile_avatar');
             if (savedAvatar) {
                 const imgElement = document.getElementById('profileImgPreview');
