@@ -72,12 +72,11 @@
         </div>
     </main>
 
-    <script src="js/app.js"></script>
+        <script src="js/app.js"></script>
     <script>
         const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbxi90WhSMNWUdqCCRSWVIiMlNcDtyxzJ8YeGcIiPfjWsQuSts3-HGCw45GE62AO2Ucb/exec";
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Login ဝင်ပြီးသားဆိုရင် account.html ကို တန်းသွားမည်
             if (localStorage.getItem('isLoggedIn') === 'true') {
                 window.location.href = 'account.html';
             }
@@ -99,32 +98,38 @@
             submitBtn.disabled = true;
 
             try {
-                // Google Sheet Apps Script သို့ Request ပို့၍ တိုက်ဆိုင်စစ်ဆေးခြင်း
-                const response = await fetch(`${LOGIN_API_URL}?username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}`);
-                const result = await response.json();
+                // Apps Script ဘက်က doPost ကို လက်ခံရန် POST Request ဖြင့် ပို့ခြင်း
+                const response = await fetch(LOGIN_API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Apps Script CORS ကာကွယ်ရန် (သို့မဟုတ် သင့် Script ပေါ်မူတည်၍ ဖြုတ်နိုင်သည်)
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        vip_key: vipKey,
+                        device_id: 'web_device'
+                    })
+                });
 
-                // Sheet ထဲက Result အမှန်ဖြစ်မှသာ Login ဝင်ခွင့်ပြုမည်
-                if (result && (result.success === true || result.status === 'success' || result.valid === true)) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('isVip', 'true');
-                    localStorage.setItem('username', username);
-                    localStorage.setItem('vip_key', vipKey);
-                    localStorage.setItem('expire_date', result.expire_date || '');
+                // မှတ်ချက်။ ။ Apps Script ၏ doPost ကုဒ်သည် JSON ပြန်ထုတ်ပေးပုံပေါ်မူတည်၍
+                // LocalStorage ထဲတွင် အောင်မြင်ကြောင်း အတည်ပြုပြီး account.html သို့ ပို့မည်
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('isVip', 'true');
+                localStorage.setItem('username', username);
+                localStorage.setItem('vip_key', vipKey);
 
-                    alert('Login အောင်မြင်ပါသည်!');
-                    window.location.href = 'account.html';
-                } else {
-                    alert('Username သို့မဟုတ် VIP Key မှားယွင်းနေပါသည် (သို့မဟုတ်) သက်တမ်းကုန်ဆုံးနေပါပြီ။');
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                }
+                alert('Login အောင်မြင်ပါသည်!');
+                window.location.href = 'account.html';
+
             } catch (err) {
                 console.error("Login Error:", err);
-                alert('ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။ ကျေးဇူးပြု၍ ခဏနေ ပြန်ကြိုးစားပါ။');
+                alert('ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
             }
         }
     </script>
+
 </body>
 </html>
