@@ -57,7 +57,7 @@
 
                 <!-- Buy VIP Key Section -->
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <label style="display: block; font-size: 11px; color: #a4b0be; text-align: center;">Buy VIP Key</label>
+                    <label style="display: block; font-size: 13px; font-weight: bold; text-transform: uppercase; color: var(--secondary-color); text-align: center;">BUY VIP KEY</label>
                     <div style="display: flex; gap: 10px;">
                         <a href="https://t.me/your_telegram_username" target="_blank" style="flex: 1; text-align: center; background: #0088cc; color: #fff; padding: 10px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px;">
                             <i class="fa-brands fa-telegram"></i> Telegram
@@ -75,7 +75,6 @@
     <script src="js/app.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // အကယ်၍ Login ဝင်ပြီးသားဆိုရင် account.html ကို တန်းပို့ပေးမည်
             if (localStorage.getItem('isLoggedIn')) {
                 window.location.href = 'account.html';
             }
@@ -91,13 +90,11 @@
                 return;
             }
 
-            // LocalStorage ထဲတွင် သိမ်းဆည်းခြင်း
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('isVip', 'true');
             localStorage.setItem('username', username);
             localStorage.setItem('vip_key', vipKey);
 
-            // account.html သို့ တန်းသွားမည်
             window.location.href = 'account.html';
         }
     </script>
