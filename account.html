@@ -48,20 +48,27 @@
                     </div>
                 </div>
 
-                <!-- Username, VIP Key, Expire Date သီးခြားစီ Box ၃ ခု -->
-                <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-                    <div>
-                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">Username</label>
-                        <input type="text" id="accUsername" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px; text-align: center;">
+                <!-- Username, VIP Key, Expire Date သီးခြားစီ Box ၃ ခု (ဘားတန်းပုံစံ Label ဖြင့်) -->
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+                    
+                    <!-- Username Box -->
+                    <div style="position: relative; width: 100%;">
+                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">username</span>
+                        <input type="text" id="accUsername" readonly style="width: 100%; padding: 12px 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
-                    <div>
-                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">VIP Key</label>
-                        <input type="text" id="accVipKey" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px; text-align: center;">
+
+                    <!-- VIP Key Box -->
+                    <div style="position: relative; width: 100%;">
+                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">vip key</span>
+                        <input type="text" id="accVipKey" readonly style="width: 100%; padding: 12px 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
-                    <div>
-                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">Expire Date</label>
-                        <input type="text" id="accExpireDate" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #2ecc71; font-weight: bold; border-radius: 6px; font-size: 13px; text-align: center;">
+
+                    <!-- Expire Date Box -->
+                    <div style="position: relative; width: 100%;">
+                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">expire date</span>
+                        <input type="text" id="accExpireDate" readonly style="width: 100%; padding: 12px 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #2ecc71; font-weight: bold; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
+
                 </div>
 
                 <!-- Renew VIP Key စာသား (ခလုတ်မဟုတ်ပါ) -->
@@ -173,7 +180,7 @@
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                Reader.onload = function(e) {
                     const base64Image = e.target.result;
                     localStorage.setItem('profile_avatar', base64Image);
 
