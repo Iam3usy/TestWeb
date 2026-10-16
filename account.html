@@ -82,5 +82,127 @@
 
     <!-- Image Picker Choice Modal -->
     <div id="imagePickerModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:99999; align-items:center; justify-content:center;">
-        <div style="background:var(--card-bg, #
+        <div style="background:var(--card-bg, #1a1a1a); padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.5); border:1px solid var(--border-color, #333);">
+            <h3 style="color:#fff; margin-bottom:15px; font-size:16px;">Profile ပုံပြောင်းရန်</h3>
+            <p style="color:#b2bec3; font-size:13px; margin-bottom:20px;">ပုံဘယ်က ထည့်မလဲ ရွေးချယ်ပါ</p>
             
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button onclick="triggerCamera()" style="background:#2ecc71; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fa-solid fa-camera"></i> ကင်မရာမှ ရိုက်မည်
+                </button>
+                <button onclick="triggerGallery()" style="background:#3498db; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fa-solid fa-image"></i> ဖုန်း Gallery မှ ရွေးမည်
+                </button>
+                <button onclick="closeImagePickerModal()" style="background:#e74c3c; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; margin-top:5px;">မလုပ်တော့ပါ</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbw31kCw7WvADo25PWNsOos9tN50DrGaK0fMHfoa5Fb_6V0FVOPlSyE-a8Hu7cgYscnQ/exec";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const username = localStorage.getItem('username') || '';
+            const vipKey = localStorage.getItem('vip_key') || '';
+            
+            // ရက်စွဲကို DD.MM.YYYY ပုံစံသို့ ပြောင်းလဲခြင်း
+            let formattedDate = 'Lifetime';
+            const rawExpireDate = localStorage.getItem('expire_date');
+            if (rawExpireDate) {
+                const dateObj = new Date(rawExpireDate);
+                if (!isNaN(dateObj)) {
+                    const day = String(dateObj.getDate()).padStart(2, '0');
+                    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const year = dateObj.getFullYear();
+                    formattedDate = `${day}.${month}.${year}`;
+                } else {
+                    formattedDate = rawExpireDate;
+                }
+            }
+
+            // Username - VIP Key - Expire Date တို့ကို - လေးတွေခံ၍ ပေါင်းစပ်ပြသခြင်း
+            document.getElementById('accCombinedInfo').value = `${username} - ${vipKey} - ${formattedDate}`;
+
+            const savedAvatar = localStorage.getItem('profile_avatar');
+            if (savedAvatar) {
+                const imgElement = document.getElementById('profileImgPreview');
+                const defaultIcon = document.getElementById('defaultUserIcon');
+                imgElement.src = savedAvatar;
+                imgElement.style.display = 'block';
+                defaultIcon.style.display = 'none';
+            }
+        });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function openImagePickerModal() {
+            document.getElementById('imagePickerModal').style.display = 'flex';
+        }
+
+        function closeImagePickerModal() {
+            document.getElementById('imagePickerModal').style.display = 'none';
+        }
+
+        function triggerCamera() {
+            closeImagePickerModal();
+            document.getElementById('cameraInput').click();
+        }
+
+        function triggerGallery() {
+            closeImagePickerModal();
+            document.getElementById('galleryInput').click();
+        }
+
+        function handleImageSelection(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    localStorage.setItem('profile_avatar', base64Image);
+
+                    const imgElement = document.getElementById('profileImgPreview');
+                    const defaultIcon = document.getElementById('defaultUserIcon');
+                    imgElement.src = base64Image;
+                    imgElement.style.display = 'block';
+                    defaultIcon.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function handleLogout() {
+            const username = localStorage.getItem('username');
+            const vipKey = localStorage.getItem('vip_key');
+            const deviceId = localStorage.getItem('device_id') || 'web_device';
+
+            if (username && vipKey) {
+                try {
+                    const response = await fetch(`${LOGIN_API_URL}?action=logout&username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}&device_id=${encodeURIComponent(deviceId)}`);
+                    const result = await response.json();
+                    console.log("Logout API Response:", result);
+                } catch (err) {
+                    console.error("Logout API Error:", err);
+                }
+            }
+
+            localStorage.clear();
+            
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 300);
+        }
+    </script>
+
+</body>
+    </html>
+    
