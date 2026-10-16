@@ -57,8 +57,28 @@
                         <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">VIP Key</label>
                         <input type="text" id="accVipKey" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
                     </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">Expire Date</label>
+                        <input type="text" id="accExpireDate" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #2ecc71; font-weight: bold; border-radius: 6px; font-size: 13px;">
+                    </div>
                 </div>
 
+                <!-- Renew VIP Key စာသား (ခလုတ်မဟုတ်ပါ) -->
+                <div style="width: 100%; text-align: center; margin: 5px 0 0 0;">
+                    <span style="font-size: 13px; color: #f39c12; font-weight: bold;">Renew VIP Key (ဆက်သွယ်ရန်)</span>
+                </div>
+
+                <!-- Viber နှင့် Telegram ခလုတ်များ (ဘေးချင်းကပ် တစ်ဝက်စီ) -->
+                <div style="width: 100%; display: flex; gap: 10px;">
+                    <a href="https://viber.com" target="_blank" style="flex: 1; background: #7360f2; color: #fff; text-decoration: none; padding: 11px; border-radius: 6px; font-weight: bold; font-size: 13px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class="fa-brands fa-viber"></i> Viber
+                    </a>
+                    <a href="https://telegram.org" target="_blank" style="flex: 1; background: #229ed9; color: #fff; text-decoration: none; padding: 11px; border-radius: 6px; font-weight: bold; font-size: 13px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class="fa-brands fa-telegram"></i> Telegram
+                    </a>
+                </div>
+
+                <!-- Logout Button -->
                 <button onclick="handleLogout()" style="width: 100%; background: var(--primary-color); color: #fff; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 5px;">Logout</button>
 
             </div>
@@ -99,8 +119,8 @@
             }
             document.getElementById('accUsername').value = localStorage.getItem('username') || '';
             document.getElementById('accVipKey').value = localStorage.getItem('vip_key') || '';
+            document.getElementById('accExpireDate').value = localStorage.getItem('expire_date') || 'Lifetime / Not specified';
 
-            // သိမ်းထားသော Profile ပုံ ရှိမရှိ စစ်ဆေးပြီး ပေါ်စေရန်
             const savedAvatar = localStorage.getItem('profile_avatar');
             if (savedAvatar) {
                 const imgElement = document.getElementById('profileImgPreview');
@@ -133,7 +153,6 @@
             document.getElementById('galleryInput').click();
         }
 
-        // ရွေးချယ်လိုက်သော ပုံကို ဖမ်းယူပြီး LocalStorage တွင် သိမ်းကာ Preview ပြရန်
         function handleImageSelection(event) {
             const file = event.target.files[0];
             if (file) {
@@ -152,7 +171,6 @@
             }
         }
 
-                // Logout လုပ်သည့်အခါ Google Sheet ထဲပါ ဝင်ပြီး Device ID ရှင်းထုတ်ပေးမည့် function
         async function handleLogout() {
             const username = localStorage.getItem('username');
             const vipKey = localStorage.getItem('vip_key');
@@ -160,7 +178,6 @@
 
             if (username && vipKey) {
                 try {
-                    // Google Sheet သို့ action=logout ပို့၍ Device ID ဖြတ်ခိုင်းပြီး ပြီးဆုံးသည်အထိ စောင့်မည်
                     const response = await fetch(`${LOGIN_API_URL}?action=logout&username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}&device_id=${encodeURIComponent(deviceId)}`);
                     const result = await response.json();
                     console.log("Logout API Response:", result);
@@ -169,15 +186,12 @@
                 }
             }
 
-            // LocalStorage ကို ရှင်းလင်းခြင်း
             localStorage.clear();
             
-            // API Request ပြီးဆုံးသွားကြောင်း သေချာစေရန် ခေတ္တစောင့်ပြီးမှ Redirect လုပ်မည်
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 300);
         }
-
     </script>
 
 </body>
