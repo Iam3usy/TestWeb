@@ -3,80 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - My Hub</title>
+    <title>My Hub - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+    <!-- Side Menu -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
-            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="toggleSidebar()" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
-            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li class="menu-item active" id="sidebarAuthItem"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
+            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
+            <li><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li class="active"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
         </ul>
     </nav>
 
-    <main class="main-content" id="mainContent">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="header">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
             <h1>Login</h1>
         </div>
 
         <div style="display: flex; justify-content: center; align-items: center; padding: 40px 15px;">
-            <form onsubmit="handleLoginSubmit(event)" style="background: var(--card-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px;">
-                <h2 style="text-align: center; font-size: 1.3rem; margin-bottom: 5px; color: #fff;">Account Login</h2>
+            <div style="background: var(--card-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px;">
                 
-                <div>
-                    <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-secondary);">Username</label>
-                    <input type="text" id="usernameInput" required style="width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+                <h2 style="text-align: center; font-size: 1.2rem; color: var(--primary-color);">
+                    <i class="fa-solid fa-user-lock"></i> Account Login
+                </h2>
+
+                <!-- Login Form -->
+                <form onsubmit="handleLoginSubmit(event)" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">Username</label>
+                        <input type="text" id="usernameInput" required style="width: 100%; padding: 11px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">VIP Key</label>
+                        <input type="password" id="vipKeyInput" required style="width: 100%; padding: 11px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
+                    </div>
+                    <button type="submit" style="background: var(--primary-color); color: #fff; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 5px;">Login</button>
+                </form>
+
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
+
+                <!-- Buy VIP Key Section -->
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="display: block; font-size: 11px; color: #a4b0be; text-align: center;">Buy VIP Key</label>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="https://t.me/your_telegram_username" target="_blank" style="flex: 1; text-align: center; background: #0088cc; color: #fff; padding: 10px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px;">
+                            <i class="fa-brands fa-telegram"></i> Telegram
+                        </a>
+                        <a href="viber://chat?number=%2B959XXXXXXXXX" target="_blank" style="flex: 1; text-align: center; background: #7360f2; color: #fff; padding: 10px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px;">
+                            <i class="fa-brands fa-viber"></i> Viber
+                        </a>
+                    </div>
                 </div>
 
-                <div>
-                    <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-secondary);">VIP Key</label>
-                    <input type="password" id="vipKeyInput" required style="width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
-                </div>
-
-                <button type="submit" style="background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px;">Login</button>
-            </form>
+            </div>
         </div>
     </main>
 
     <script src="js/app.js"></script>
     <script>
-        // Login Form Handler Logic
-        async function handleLoginSubmit(event) {
+        document.addEventListener("DOMContentLoaded", () => {
+            // အကယ်၍ Login ဝင်ပြီးသားဆိုရင် account.html ကို တန်းပို့ပေးမည်
+            if (localStorage.getItem('isLoggedIn')) {
+                window.location.href = 'account.html';
+            }
+        });
+
+        function handleLoginSubmit(event) {
             event.preventDefault();
             const username = document.getElementById('usernameInput').value.trim();
             const vipKey = document.getElementById('vipKeyInput').value.trim();
 
             if (!username || !vipKey) {
-                alert('Please fill in all fields');
+                alert('အချက်အလက်များကို အပြည့်အစုံထည့်ပါ။');
                 return;
             }
 
-            let deviceId = localStorage.getItem('device_id');
-            if (!deviceId) {
-                deviceId = 'dev_' + Math.random().toString(36).substring(2, 15);
-                localStorage.setItem('device_id', deviceId);
-            }
-
-            // LocalStorage ထဲတွင် သိမ်းဆည်းခြင်း (Apps Script ချိတ်ရန် လိုအပ်ပါက ဤနေရာတွင် fetch ထည့်နိုင်သည်)
+            // LocalStorage ထဲတွင် သိမ်းဆည်းခြင်း
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('isVip', 'true');
             localStorage.setItem('username', username);
             localStorage.setItem('vip_key', vipKey);
-            localStorage.setItem('expire_date', '2026-12-31');
-            localStorage.setItem('device_id', deviceId);
 
+            // account.html သို့ တန်းသွားမည်
             window.location.href = 'account.html';
         }
     </script>
