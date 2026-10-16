@@ -33,48 +33,46 @@
             <h1>Models</h1>
         </div>
 
-        <!-- Model List Container (တစ်တန်းကို 3 ကတ်ပြရန်) -->
+        <!-- Model List Container -->
         <div id="modelContainer" class="model-grid">
-            <div class="status-msg">မော်ဒယ်စာရင်းများကို ရယူနေပါပြီ...</div>
+            <div class="status-msg">Loading...</div>
         </div>
     </main>
 
     <script src="js/app.js"></script>
     <script>
-        const MODEL_API_URL = "https://script.google.com/macros/s/AKfycbw31kCw7WvADo25PWNsOos9tN50DrGaK0fMHfoa5Fb_6V0FVOPlSyE-a8Hu7cgYscnQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbw31kCw7WvADo25PWNsOos9tN50DrGaK0fMHfoa5Fb_6V0FVOPlSyE-a8Hu7cgYscnQ/exec";
 
         document.addEventListener("DOMContentLoaded", () => {
-            fetchModelsAndVideos();
+            fetchModels();
         });
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
         }
 
-        // Google Sheet မှ မော်ဒယ်များနှင့် ဇာတ်ကားဒေတာများကို ဆွဲထုတ်ခြင်း
-        async function fetchModelsAndVideos() {
+        async function fetchModels() {
             const container = document.getElementById('modelContainer');
             try {
-                const response = await fetch(`${MODEL_API_URL}?action=getAllData`);
+                const response = await fetch(`${API_URL}?action=getAllData`);
                 const data = await response.json();
 
-                const models = data.models || []; // model_name, model_image ပါဝင်သောစာရင်း
-                const videos = data.videos || []; // ဇာတ်ကားစာရင်းများ (model column ပါဝင်ရပါမည်)
+                const models = data.models || [];
+                const videos = data.videos || [];
 
                 if (models.length > 0) {
                     container.innerHTML = '';
                     
                     models.forEach(modelItem => {
-                        const modelName = modelItem.model_name || '';
-                        const modelImage = modelItem.model_image || 'img/default-model.jpg';
+                        const modelName = modelItem.model_name || modelItem.name || '';
+                        const modelImage = modelItem.model_image || modelItem.image || 'img/default-model.jpg';
 
-                        // ဇာတ်ကားစာရင်းထဲတွင် ဤမော်ဒယ်ပါဝင်သည့် ဗီဒီယိုအရေအတွက်ကို ရေတွက်ခြင်း
+                        // ဇာတ်ကားစာရင်းထဲမှာ ဒီမော်ဒယ်ပါတဲ့ ဗီဒီယိုအရေအတွက်ကို ရေတွက်ခြင်း
                         const videoCount = videos.filter(video => {
                             if (!video.model) return false;
                             return video.model.toLowerCase().includes(modelName.toLowerCase());
                         }).length;
 
-                        // Model Card တည်ဆောက်ခြင်း
                         const card = document.createElement('a');
                         card.href = `search.html?model=${encodeURIComponent(modelName)}`;
                         card.className = 'model-card';
@@ -91,11 +89,11 @@
                         container.appendChild(card);
                     });
                 } else {
-                    container.innerHTML = '<div class="status-msg">မော်ဒယ်စာရင်း မရှိသေးပါ</div>';
+                    container.innerHTML = '<div class="status-msg">No models found</div>';
                 }
             } catch (err) {
-                console.error("Error fetching models data:", err);
-                container.innerHTML = '<div class="status-msg">ဒေတာရယူရာတွင် အမှားအယွင်း ရှိပါသည်</div>';
+                console.error("Error fetching models:", err);
+                container.innerHTML = '<div class="status-msg">Failed to load data</div>';
             }
         }
     </script>
