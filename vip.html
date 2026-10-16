@@ -34,13 +34,78 @@
             <h1>VIP Zone</h1>
         </div>
 
-        <!-- VIP Video Grid Container -->
-        <div id="videoContainer" class="video-grid">
-            <p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">Checking VIP access...</p>
+        <!-- Login / Buy Key Container (Login မရှိသေးရင် ဒီမှာပေါ်မယ်) -->
+        <div id="vipAuthContainer" style="display: none; padding: 40px 15px; justify-content: center;">
+            <div style="background: var(--card-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px;">
+                <h2 style="text-align: center; font-size: 1.2rem; color: var(--primary-color);"><i class="fa-solid fa-crown"></i> VIP Access Required</h2>
+                <p style="text-align: center; font-size: 12px; color: #a4b0be; margin-bottom: 5px;">VIP ဗီဒီယိုများကြည့်ရန် Login ဝင်ပါ သို့မဟုတ် Key ဝယ်ယူပါ။</p>
+                
+                <!-- Login Form -->
+                <form onsubmit="handleVipLogin(event)" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">Username</label>
+                        <input type="text" id="vipUsername" required style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">VIP Key</label>
+                        <input type="password" id="vipKey" required style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
+                    </div>
+                    <button type="submit" style="background: var(--primary-color); color: #fff; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 5px;">Login</button>
+                </form>
+
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
+
+                <!-- Buy Key Section -->
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="display: block; font-size: 11px; color: #a4b0be;">Don't have a key?</label>
+                    <a href="https://t.me/your_telegram_username" target="_blank" style="text-align: center; background: #2ed573; color: #fff; padding: 10px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px;">
+                        <i class="fa-brands fa-telegram"></i> Buy Key
+                    </a>
+                </div>
+            </div>
         </div>
+
+        <!-- VIP Video Grid Container -->
+        <div id="videoContainer" class="video-grid" style="display: none;"></div>
     </main>
 
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        // VIP Page သီးသန့် Login စစ်ဆေးခြင်းနှင့် Form Handling
+        document.addEventListener("DOMContentLoaded", () => {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const authContainer = document.getElementById('vipAuthContainer');
+            const videoContainer = document.getElementById('videoContainer');
+
+            if (!isLoggedIn) {
+                if (authContainer) authContainer.style.display = 'flex';
+                if (videoContainer) videoContainer.style.display = 'none';
+            } else {
+                if (authContainer) authContainer.style.display = 'none';
+                if (videoContainer) videoContainer.style.display = 'grid';
+            }
+        });
+
+        function handleVipLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('vipUsername').value.trim();
+            const vipKey = document.getElementById('vipKey').value.trim();
+
+            if (!username || !vipKey) {
+                alert('အချက်အလက်များကို အပြည့်အစုံထည့်ပါ။');
+                return;
+            }
+
+            // LocalStorage ထဲတွင် သိမ်းဆည်းခြင်း
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('isVip', 'true');
+            localStorage.setItem('username', username);
+            localStorage.setItem('vip_key', vipKey);
+
+            // မျက်နှာပြင်ကို Refresh လုပ်ပြီး ဗီဒီယိုများပြရန်
+            window.location.reload();
+        }
+    </script>
 </body>
 </html>
