@@ -77,7 +77,10 @@
                         }
                     });
 
-                    const modelsList = Object.values(modelMap);
+                    // မော်ဒယ်နာမည်များကို A to Z အစဉ်လိုက် (Alphabetical Order) စီခြင်း
+                    const modelsList = Object.values(modelMap).sort((a, b) => 
+                        a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
+                    );
 
                     if (modelsList.length > 0) {
                         modelsList.forEach(modelItem => {
