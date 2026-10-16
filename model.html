@@ -3,39 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Models - My Hub</title>
+    <title>My Hub - Model List</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://vjs.zencdn.net/8.10.0/video-js.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+    <!-- Side Menu -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
-            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="toggleSidebar()" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
-            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li class="menu-item active"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li class="menu-item" id="sidebarAuthItem"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
+            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
+            <li class="active"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
         </ul>
     </nav>
 
-    <main class="main-content" id="mainContent">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="header">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1 id="pageTitle">Models</h1>
+            <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1>Models</h1>
         </div>
 
-        <!-- Model Container (app.js က renderModelsDirect သို့မဟုတ် renderContent ကိုသုံးမည်) -->
-        <div id="modelContainer" style="display: grid; padding: 15px;"></div>
-        <div id="videoContainer" class="video-grid"></div>
+        <!-- Model List Container (တစ်တန်းကို 3 ကတ်ပြရန်) -->
+        <div id="modelContainer" class="model-grid">
+            <div class="status-msg">မော်ဒယ်စာရင်းများကို ရယူနေပါပြီ...</div>
+        </div>
     </main>
+
     <script src="js/app.js"></script>
+    <script>
+        const MODEL_API_URL = "https://script.google.com/macros/s/AKfycbw31kCw7WvADo25PWNsOos9tN50DrGaK0fMHfoa5Fb_6V0FVOPlSyE-a8Hu7cgYscnQ/exec";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchModelsAndVideos();
+        });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Google Sheet မှ မော်ဒယ်များနှင့် ဇာတ်ကားဒေတာများကို ဆွဲထုတ်ခြင်း
+        async function fetchModelsAndVideos() {
+            const container = document.getElementById('modelContainer');
+            try {
+                const response = await fetch(`${MODEL_API_URL}?action=getAllData`);
+                const data = await response.json();
+
+                const models = data.models || []; // model_name, model_image ပါဝင်သောစာရင်း
+                const videos = data.videos || []; // ဇာတ်ကားစာရင်းများ (model column ပါဝင်ရပါမည်)
+
+                if (models.length > 0) {
+                    container.innerHTML = '';
+                    
+                    models.forEach(modelItem => {
+                        const modelName = modelItem.model_name || '';
+                        const modelImage = modelItem.model_image || 'img/default-model.jpg';
+
+                        // ဇာတ်ကားစာရင်းထဲတွင် ဤမော်ဒယ်ပါဝင်သည့် ဗီဒီယိုအရေအတွက်ကို ရေတွက်ခြင်း
+                        const videoCount = videos.filter(video => {
+                            if (!video.model) return false;
+                            return video.model.toLowerCase().includes(modelName.toLowerCase());
+                        }).length;
+
+                        // Model Card တည်ဆောက်ခြင်း
+                        const card = document.createElement('a');
+                        card.href = `search.html?model=${encodeURIComponent(modelName)}`;
+                        card.className = 'model-card';
+
+                        card.innerHTML = `
+                            <div class="model-img-container">
+                                <img src="${modelImage}" alt="${modelName}" loading="lazy">
+                                <div class="video-count-badge">
+                                    <i class="fa-solid fa-video"></i> ${videoCount}
+                                </div>
+                            </div>
+                            <div class="model-name">${modelName}</div>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = '<div class="status-msg">မော်ဒယ်စာရင်း မရှိသေးပါ</div>';
+                }
+            } catch (err) {
+                console.error("Error fetching models data:", err);
+                container.innerHTML = '<div class="status-msg">ဒေတာရယူရာတွင် အမှားအယွင်း ရှိပါသည်</div>';
+            }
+        }
+    </script>
 </body>
 </html>
