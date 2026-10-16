@@ -59,6 +59,8 @@
 
     <script src="js/app.js"></script>
     <script>
+        const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbw31kCw7WvADo25PWNsOos9tN50DrGaK0fMH/exec";
+
         document.addEventListener("DOMContentLoaded", () => {
             const isLoggedIn = localStorage.getItem('isLoggedIn');
             if (!isLoggedIn) {
@@ -69,10 +71,31 @@
             document.getElementById('accVipKey').value = localStorage.getItem('vip_key') || '';
         });
 
-        function handleLogout() {
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Logout လုပ်သည့်အခါ Google Sheet ထဲပါ ဝင်ပြီး Device ID ရှင်းထုတ်ပေးမည့် function
+        async function handleLogout() {
+            const username = localStorage.getItem('username');
+            const vipKey = localStorage.getItem('vip_key');
+            const deviceId = localStorage.getItem('device_id') || 'web_device';
+
+            if (username && vipKey) {
+                try {
+                    // Google Sheet သို့ action=logout ပို့၍ Device ID ဖြတ်ခိုင်းခြင်း
+                    await fetch(`${LOGIN_API_URL}?action=logout&username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}&device_id=${encodeURIComponent(deviceId)}`);
+                } catch (err) {
+                    console.error("Logout API Error:", err);
+                }
+            }
+
+            // LocalStorage ကို ရှင်းလင်းခြင်း
             localStorage.clear();
-            window.location.href = 'login.html';
+            
+            window.location.href = 'index.html';
         }
     </script>
+
 </body>
 </html>
