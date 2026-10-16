@@ -172,4 +172,51 @@ function closePlayer() {
     }
 }
 
+// Google Apps Script Login API URL
+const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbxi90WhSMNWUdqCCRSWVIiMlNcDtyxzJ8YeGcIiPfjWsQuSts3-HGCw45GE62AO2Ucb/exec";
+
+// Login Form Submit လုပ်သည့်အခါ အလုပ်လုပ်မည့် Function
+async function handleLoginSubmit(event) {
+    event.preventDefault();
+    const username = document.getElementById('usernameInput').value.trim();
+    const vipKey = document.getElementById('vipKeyInput').value.trim();
+
+    if (!username || !vipKey) {
+        alert('အချက်အလက်များကို အပြည့်အစုံထည့်ပါ။');
+        return;
+    }
+
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Checking...';
+    submitBtn.disabled = true;
+
+    try {
+        // Google Sheet Apps Script သို့ Request ပို့ခြင်း
+        const response = await fetch(`${LOGIN_API_URL}?username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}`);
+        const result = await response.json();
+
+        if (result && (result.success === true || result.status === 'success' || result.valid === true)) {
+            // Login အောင်မြင်ပါက LocalStorage ထဲတွင် သိမ်းမည်
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('isVip', 'true');
+            localStorage.setItem('username', username);
+            localStorage.setItem('vip_key', vipKey);
+            localStorage.setItem('expire_date', result.expire_date || '');
+
+            alert('Login အောင်မြင်ပါသည်!');
+            window.location.href = 'account.html';
+        } else {
+            alert('Username သို့မဟုတ် VIP Key မှားယွင်းနေပါသည် (သို့မဟုတ်) သက်တမ်းကုန်ဆုံးနေပါပြီ။');
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        alert('ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။ ခဏနေ ပြန်ကြိုးစားပါ။');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", loadDataFromWorker);
