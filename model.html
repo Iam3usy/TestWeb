@@ -57,52 +57,41 @@
                 const response = await fetch(`${API_URL}?action=getAllData`);
                 const data = await response.json();
 
-                // API response က Array သက်သက်ဖြစ်နေသဖြင့် အဲ့ဒီဒေတာကို videos အဖြစ် သတ်မှတ်မည်
-                const videos = Array.isArray(data) ? data : (data.videos || data.data || []);
+                // API ကနေလာတဲ့ Array ဒေတာများကို ဖမ်းယူခြင်း
+                const items = Array.isArray(data) ? data : (data.videos || data.data || []);
 
-                if (videos.length > 0) {
-                    // မော်ဒယ်နာမည်တစ်ခုချင်းစီအလိုက် ဗီဒီယိုအရေအတွက်နှင့် ပုံများကို စုစည်းခြင်း
-                    const modelMap = {};
-
-                    videos.forEach(item => {
-                        // model_name သို့မဟုတ် model ကော်လံထဲက နာမည်ကို ယူမည်
+                if (items.length > 0) {
+                    container.innerHTML = '';
+                    
+                    items.forEach(item => {
+                        // model_name သို့မဟုတ် model ထဲက နာမည်ကို ယူမည်
                         const modelName = (item.model_name || item.model || '').trim();
-                        if (!modelName) return;
+                        if (!modelName) return; // နာမည်မပါရင် ကျော်မည်
 
-                        if (!modelMap[modelName]) {
-                            modelMap[modelName] = {
-                                name: modelName,
-                                image: item.model_image || item.image || 'img/default-model.jpg',
-                                count: 0
-                            };
-                        }
-                        modelMap[modelName].count++;
-                    });
+                        // ပုံအတွက် model_image သို့မဟုတ် image ကို ယူမည် (မရှိရင် default ပုံပြမည်)
+                        const modelImage = item.model_image || item.image || '';
 
-                    const modelsList = Object.values(modelMap);
+                        // ဤမော်ဒယ်ပါသည့် ဗီဒီယိုအရေအတွက်ကို ရေတွက်ခြင်း (သို့မဟုတ် item ထဲမှာ count ပါပြီးသားဆိုရင် ယူမည်)
+                        const videoCount = item.count || items.filter(v => {
+                            const vModel = (v.model_name || v.model || '').trim();
+                            return vModel.toLowerCase() === modelName.toLowerCase();
+                        }).length;
 
-                    if (modelsList.length > 0) {
-                        container.innerHTML = '';
-                        
-                        modelsList.forEach(modelItem => {
-                            const card = document.createElement('a');
-                            card.href = `search.html?model=${encodeURIComponent(modelItem.name)}`;
-                            card.className = 'model-card';
+                        const card = document.createElement('a');
+                        card.href = `search.html?model=${encodeURIComponent(modelName)}`;
+                        card.className = 'model-card';
 
-                            card.innerHTML = `
-                                <div class="model-img-container">
-                                    <img src="${modelItem.image}" alt="${modelItem.name}" loading="lazy">
-                                    <div class="video-count-badge">
-                                        <i class="fa-solid fa-video"></i> ${modelItem.count}
-                                    </div>
+                        card.innerHTML = `
+                            <div class="model-img-container">
+                                ${modelImage ? `<img src="${modelImage}" alt="${modelName}" loading="lazy">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;font-size:12px;">150 x 150</div>`}
+                                <div class="video-count-badge">
+                                    <i class="fa-solid fa-video"></i> ${videoCount} vids
                                 </div>
-                                <div class="model-name">${modelItem.name}</div>
-                            `;
-                            container.appendChild(card);
-                        });
-                    } else {
-                        container.innerHTML = '<div class="status-msg">No models found</div>';
-                    }
+                            </div>
+                            <div class="model-name">${modelName}</div>
+                        `;
+                        container.appendChild(card);
+                    });
                 } else {
                     container.innerHTML = '<div class="status-msg">No models found</div>';
                 }
