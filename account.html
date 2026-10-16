@@ -51,15 +51,15 @@
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
                     <div>
                         <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">Username</label>
-                        <input type="text" id="accUsername" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
+                        <input type="text" id="accUsername" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
                     <div>
                         <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">VIP Key</label>
-                        <input type="text" id="accVipKey" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
+                        <input type="text" id="accVipKey" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
                     <div>
                         <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">Expire Date</label>
-                        <input type="text" id="accExpireDate" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #2ecc71; font-weight: bold; border-radius: 6px; font-size: 13px;">
+                        <input type="text" id="accExpireDate" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #2ecc71; font-weight: bold; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
                 </div>
 
@@ -120,7 +120,6 @@
             document.getElementById('accUsername').value = localStorage.getItem('username') || '';
             document.getElementById('accVipKey').value = localStorage.getItem('vip_key') || '';
             
-            // ရက်စွဲကို DD.MM.YYYY ပုံစံသို့ ပြောင်းလဲဖော်ပြခြင်း
             const rawExpireDate = localStorage.getItem('expire_date');
             if (rawExpireDate) {
                 const dateObj = new Date(rawExpireDate);
@@ -136,7 +135,6 @@
                 document.getElementById('accExpireDate').value = 'Lifetime / Not specified';
             }
 
-            // သိမ်းထားသော Profile ပုံ ရှိမရှိ စစ်ဆေးပြီး ပေါ်စေရန်
             const savedAvatar = localStorage.getItem('profile_avatar');
             if (savedAvatar) {
                 const imgElement = document.getElementById('profileImgPreview');
