@@ -74,13 +74,16 @@
 
     <script src="js/app.js"></script>
     <script>
+        const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbxi90WhSMNWUdqCCRSWVIiMlNcDtyxzJ8YeGcIiPfjWsQuSts3-HGCw45GE62AO2Ucb/exec";
+
         document.addEventListener("DOMContentLoaded", () => {
-            if (localStorage.getItem('isLoggedIn')) {
+            // Login ဝင်ပြီးသားဆိုရင် account.html ကို တန်းသွားမည်
+            if (localStorage.getItem('isLoggedIn') === 'true') {
                 window.location.href = 'account.html';
             }
         });
 
-        function handleLoginSubmit(event) {
+        async function handleLoginSubmit(event) {
             event.preventDefault();
             const username = document.getElementById('usernameInput').value.trim();
             const vipKey = document.getElementById('vipKeyInput').value.trim();
@@ -90,12 +93,37 @@
                 return;
             }
 
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('isVip', 'true');
-            localStorage.setItem('username', username);
-            localStorage.setItem('vip_key', vipKey);
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Checking...';
+            submitBtn.disabled = true;
 
-            window.location.href = 'account.html';
+            try {
+                // Google Sheet Apps Script သို့ Request ပို့၍ တိုက်ဆိုင်စစ်ဆေးခြင်း
+                const response = await fetch(`${LOGIN_API_URL}?username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}`);
+                const result = await response.json();
+
+                // Sheet ထဲက Result အမှန်ဖြစ်မှသာ Login ဝင်ခွင့်ပြုမည်
+                if (result && (result.success === true || result.status === 'success' || result.valid === true)) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('isVip', 'true');
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('vip_key', vipKey);
+                    localStorage.setItem('expire_date', result.expire_date || '');
+
+                    alert('Login အောင်မြင်ပါသည်!');
+                    window.location.href = 'account.html';
+                } else {
+                    alert('Username သို့မဟုတ် VIP Key မှားယွင်းနေပါသည် (သို့မဟုတ်) သက်တမ်းကုန်ဆုံးနေပါပြီ။');
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            } catch (err) {
+                console.error("Login Error:", err);
+                alert('ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။ ကျေးဇူးပြု၍ ခဏနေ ပြန်ကြိုးစားပါ။');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         }
     </script>
 </body>
