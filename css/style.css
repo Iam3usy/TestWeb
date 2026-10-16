@@ -97,6 +97,68 @@ body { background-color: var(--bg-color); color: var(--text-color); min-height: 
     color: #2ecc71;
     font-size: 10px;
     font-weight: bold;
+/* Model Grid (တစ်တန်းကို 3 ကတ်ပြရန်) */
+.model-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 12px;
+}
+
+/* Model Card Design (အရွယ်အစား အားလုံး အတိအကျတူညီစေရန်) */
+.model-card {
+    background: var(--card-bg, #1a1a1a);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color, #333);
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* အမြင့်ကို အပြည့်ယူစေရန် */
+    transition: transform 0.2s ease;
+}
+
+.model-card:active {
+    transform: scale(0.96);
+}
+
+.model-img-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4; /* ပုံနှင့် placeholder ၏ အတိုအရှည် အချိုးအစား တူညီစေရန် */
+    background: #222;
+    overflow: hidden;
+}
+
+.model-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Model Placeholder Styling (အရွယ်အစား ညီညာစေရန်) */
+.model-placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Video Count Badge */
+.video-count-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #2ecc71;
+    font-size: 10px;
+    font-weight: bold;
     padding: 2px 5px;
     border-radius: 4px;
     display: flex;
@@ -104,9 +166,9 @@ body { background-color: var(--bg-color); color: var(--text-color); min-height: 
     gap: 3px;
 }
 
-/* Model Name */
+/* Model Name (စာသားရှည်ပါက အစက်ချပြရန်နှင့် အတူတူညီနေစေရန်) */
 .model-name {
-    padding: 6px 4px;
+    padding: 8px 6px;
     font-size: 11px;
     color: #fff;
     text-align: center;
@@ -114,6 +176,8 @@ body { background-color: var(--bg-color); color: var(--text-color); min-height: 
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    background: var(--card-bg, #1a1a1a);
+    margin-top: auto; /* အောက်ခြေသို့ အမြဲကပ်နေစေရန် */
 }
 
 .status-msg {
@@ -123,5 +187,3 @@ body { background-color: var(--bg-color); color: var(--text-color); min-height: 
     font-size: 13px;
     grid-column: span 3;
 }
-
-
