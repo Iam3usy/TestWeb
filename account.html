@@ -152,7 +152,7 @@
             }
         }
 
-        // Logout လုပ်သည့်အခါ Google Sheet ထဲပါ ဝင်ပြီး Device ID ရှင်းထုတ်ပေးမည့် function
+                // Logout လုပ်သည့်အခါ Google Sheet ထဲပါ ဝင်ပြီး Device ID ရှင်းထုတ်ပေးမည့် function
         async function handleLogout() {
             const username = localStorage.getItem('username');
             const vipKey = localStorage.getItem('vip_key');
@@ -160,8 +160,10 @@
 
             if (username && vipKey) {
                 try {
-                    // Google Sheet သို့ action=logout ပို့၍ Device ID ဖြတ်ခိုင်းခြင်း
-                    await fetch(`${LOGIN_API_URL}?action=logout&username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}&device_id=${encodeURIComponent(deviceId)}`);
+                    // Google Sheet သို့ action=logout ပို့၍ Device ID ဖြတ်ခိုင်းပြီး ပြီးဆုံးသည်အထိ စောင့်မည်
+                    const response = await fetch(`${LOGIN_API_URL}?action=logout&username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}&device_id=${encodeURIComponent(deviceId)}`);
+                    const result = await response.json();
+                    console.log("Logout API Response:", result);
                 } catch (err) {
                     console.error("Logout API Error:", err);
                 }
@@ -170,8 +172,12 @@
             // LocalStorage ကို ရှင်းလင်းခြင်း
             localStorage.clear();
             
-            window.location.href = 'index.html';
+            // API Request ပြီးဆုံးသွားကြောင်း သေချာစေရန် ခေတ္တစောင့်ပြီးမှ Redirect လုပ်မည်
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 300);
         }
+
     </script>
 
 </body>
