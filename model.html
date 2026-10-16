@@ -57,41 +57,67 @@
                 const response = await fetch(`${API_URL}?action=getAllData`);
                 const data = await response.json();
 
-                // API ကနေလာတဲ့ Array ဒေတာများကို ဖမ်းယူခြင်း
-                const items = Array.isArray(data) ? data : (data.videos || data.data || []);
+                const rows = Array.isArray(data) ? data : (data.videos || data.data || []);
 
-                if (items.length > 0) {
+                if (rows.length > 0) {
                     container.innerHTML = '';
                     
-                    items.forEach(item => {
-                        // model_name သို့မဟုတ် model ထဲက နာမည်ကို ယူမည်
-                        const modelName = (item.model_name || item.model || '').trim();
-                        if (!modelName) return; // နာမည်မပါရင် ကျော်မည်
+                    // ၁။ Sheet ထဲက model_name နှင့် model_image ရှိသော မော်ဒယ်စာရင်းများကို အရင်စုစည်းမည်
+                    const modelMap = {};
 
-                        // ပုံအတွက် model_image သို့မဟုတ် image ကို ယူမည် (မရှိရင် default ပုံပြမည်)
-                        const modelImage = item.model_image || item.image || '';
+                    rows.forEach(row => {
+                        const mName = (row.model_name || '').trim();
+                        const mImg = (row.model_image || '').trim();
 
-                        // ဤမော်ဒယ်ပါသည့် ဗီဒီယိုအရေအတွက်ကို ရေတွက်ခြင်း (သို့မဟုတ် item ထဲမှာ count ပါပြီးသားဆိုရင် ယူမည်)
-                        const videoCount = item.count || items.filter(v => {
-                            const vModel = (v.model_name || v.model || '').trim();
-                            return vModel.toLowerCase() === modelName.toLowerCase();
-                        }).length;
-
-                        const card = document.createElement('a');
-                        card.href = `search.html?model=${encodeURIComponent(modelName)}`;
-                        card.className = 'model-card';
-
-                        card.innerHTML = `
-                            <div class="model-img-container">
-                                ${modelImage ? `<img src="${modelImage}" alt="${modelName}" loading="lazy">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;font-size:12px;">150 x 150</div>`}
-                                <div class="video-count-badge">
-                                    <i class="fa-solid fa-video"></i> ${videoCount} vids
-                                </div>
-                            </div>
-                            <div class="model-name">${modelName}</div>
-                        `;
-                        container.appendChild(card);
+                        if (mName && !modelMap[mName]) {
+                            modelMap[mName] = {
+                                name: mName,
+                                image: mImg || 'img/default-model.jpg',
+                                count: 0
+                            };
+                        }
                     });
+
+                    // ၂။ မော်ဒယ်တစ်ယောက်ချင်းစီအတွက် 'model' row ထဲတွင် ပါဝင်မှုကို စစ်ဆေးပြီး ဗီဒီယိုအရေအတွက် (Count) ကို တွက်ချက်မည်
+                    const modelsList = Object.values(modelMap);
+
+                    if (modelsList.length > 0) {
+                        modelsList.forEach(modelItem => {
+                            let videoCount = 0;
+
+                            rows.forEach(row => {
+                                const rowModelField = (row.model || '').trim();
+                                if (!rowModelField) return;
+
+                                // 'model' ကော်လံထဲတွင် မော်ဒယ်များ ကော်မာ(,)ဖြင့် သို့မဟုတ် အများကြီးပါနေလျှင် ခွဲထုတ်စစ်ဆေးမည်
+                                const modelsInRow = rowModelField.split(',').map(m => m.trim().toLowerCase());
+                                
+                                if (modelsInRow.includes(modelItem.name.toLowerCase())) {
+                                    videoCount++;
+                                }
+                            });
+
+                            modelItem.count = videoCount;
+
+                            // ၃။ HTML Card တည်ဆောက်ခြင်း
+                            const card = document.createElement('a');
+                            card.href = `search.html?model=${encodeURIComponent(modelItem.name)}`;
+                            card.className = 'model-card';
+
+                            card.innerHTML = `
+                                <div class="model-img-container">
+                                    <img src="${modelItem.image}" alt="${modelItem.name}" loading="lazy">
+                                    <div class="video-count-badge">
+                                        <i class="fa-solid fa-video"></i> ${modelItem.count} vids
+                                    </div>
+                                </div>
+                                <div class="model-name">${modelItem.name}</div>
+                            `;
+                            container.appendChild(card);
+                        });
+                    } else {
+                        container.innerHTML = '<div class="status-msg">No models found</div>';
+                    }
                 } else {
                     container.innerHTML = '<div class="status-msg">No models found</div>';
                 }
