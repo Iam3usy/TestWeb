@@ -3,38 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIP Zone - My Hub</title>
+    <title>My Hub - VIP Zone</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://vjs.zencdn.net/8.10.0/video-js.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+    <!-- Side Menu -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
-            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="toggleSidebar()" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
-            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li class="menu-item active"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li class="menu-item" id="sidebarAuthItem"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
+            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
+            <li><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li class="active"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
         </ul>
     </nav>
 
-    <main class="main-content" id="mainContent">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="header">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
             <h1>VIP Zone</h1>
         </div>
 
-        <!-- VIP Videos Container -->
+        <!-- VIP Video Grid Container -->
         <div id="videoContainer" class="video-grid">
-            <p style="text-align: center; color: #a4b0be; padding: 40px;">Checking VIP access...</p>
+            <p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">Checking VIP access...</p>
         </div>
     </main>
 
