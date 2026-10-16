@@ -72,7 +72,24 @@
         </div>
     </main>
 
-        <script src="js/app.js"></script>
+    <!-- Custom Alert Modal (Website ဒီဇိုင်းကိုယ်ပိုင် Alert) -->
+    <div id="customAlertModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:99999; align-items:center; justify-content:center;">
+        <div style="background:#1a1a1a; padding:25px; border-radius:12px; width:90%; max-width:380px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.5); border:1px solid #333;">
+            <div id="alertIcon" style="font-size:40px; margin-bottom:15px;">⚠️</div>
+            <h3 id="alertTitle" style="color:#fff; margin-bottom:10px; font-size:18px;">Error</h3>
+            <p id="alertMessage" style="color:#b2bec3; font-size:14px; margin-bottom:20px; line-height:1.5;"></p>
+            
+            <!-- VIP Key ဝယ်ရန် Button များအတွက် Container (Expire ဖြစ်မှ ပေါ်မည်) -->
+            <div id="buyButtonContainer" style="display:none; gap:10px; margin-bottom:15px; flex-direction:column;">
+                <a href="https://t.me/your_telegram_username" target="_blank" style="background:#0088cc; color:white; padding:10px; border-radius:6px; text-decoration:none; font-weight:bold; display:block; font-size:13px;"><i class="fa-brands fa-telegram"></i> Telegram ဖြင့် ဝယ်ရန်</a>
+                <a href="viber://chat?number=%2B959XXXXXXXXX" style="background:#7360f2; color:white; padding:10px; border-radius:6px; text-decoration:none; font-weight:bold; display:block; font-size:13px;"><i class="fa-brands fa-viber"></i> Viber ဖြင့် ဝယ်ရန်</a>
+            </div>
+
+            <button onclick="closeCustomAlert()" style="background:#e74c3c; color:white; border:none; padding:10px 20px; border-radius:6px; font-weight:bold; cursor:pointer; width:100%;">OK</button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
     <script>
         const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbxi90WhSMNWUdqCCRSWVIiMlNcDtyxzJ8YeGcIiPfjWsQuSts3-HGCw45GE62AO2Ucb/exec";
 
@@ -82,13 +99,36 @@
             }
         });
 
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Custom Modal ပြရန် Function
+        function showCustomAlert(title, message, showBuyBtns = false) {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            
+            const buyContainer = document.getElementById('buyButtonContainer');
+            if (showBuyBtns) {
+                buyContainer.style.display = 'flex';
+            } else {
+                buyContainer.style.display = 'none';
+            }
+            
+            document.getElementById('customAlertModal').style.display = 'flex';
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('customAlertModal').style.display = 'none';
+        }
+
         async function handleLoginSubmit(event) {
             event.preventDefault();
             const username = document.getElementById('usernameInput').value.trim();
             const vipKey = document.getElementById('vipKeyInput').value.trim();
 
             if (!username || !vipKey) {
-                alert('အချက်အလက်များကို အပြည့်အစုံထည့်ပါ။');
+                showCustomAlert('Warning', 'ကျေးဇူးပြု၍ Username နှင့် VIP Key ကို အပြည့်အစုံထည့်ပါ။', false);
                 return;
             }
 
@@ -98,35 +138,36 @@
             submitBtn.disabled = true;
 
             try {
-                // Apps Script ဘက်က doPost ကို လက်ခံရန် POST Request ဖြင့် ပို့ခြင်း
-                const response = await fetch(LOGIN_API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Apps Script CORS ကာကွယ်ရန် (သို့မဟုတ် သင့် Script ပေါ်မူတည်၍ ဖြုတ်နိုင်သည်)
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: username,
-                        vip_key: vipKey,
-                        device_id: 'web_device'
-                    })
-                });
+                // GET method ဖြင့် Server ဆီသို့ လှမ်းစစ်ခြင်း (CORS ပြဿနာမရှိစေရန်)
+                const response = await fetch(`${LOGIN_API_URL}?username=${encodeURIComponent(username)}&vip_key=${encodeURIComponent(vipKey)}`);
+                const result = await response.json();
 
-                // မှတ်ချက်။ ။ Apps Script ၏ doPost ကုဒ်သည် JSON ပြန်ထုတ်ပေးပုံပေါ်မူတည်၍
-                // LocalStorage ထဲတွင် အောင်မြင်ကြောင်း အတည်ပြုပြီး account.html သို့ ပို့မည်
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('isVip', 'true');
-                localStorage.setItem('username', username);
-                localStorage.setItem('vip_key', vipKey);
-
-                alert('Login အောင်မြင်ပါသည်!');
-                window.location.href = 'account.html';
-
-            } catch (err) {
-                console.error("Login Error:", err);
-                alert('ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
+
+                if (result && (result.success === true || result.status === 'success' || result.valid === true)) {
+                    // Login အောင်မြင်ပါက
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('isVip', 'true');
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('vip_key', vipKey);
+                    localStorage.setItem('expire_date', result.expire_date || '');
+
+                    window.location.href = 'account.html';
+                } else {
+                    // အကယ်၍ သက်တမ်းကုန်ဆုံးသွားပါက
+                    if (result.message && result.message.toLowerCase().includes('expired')) {
+                        showCustomAlert('Key Expired', 'Your Key is Expired. Please renew your key.', true);
+                    } else {
+                        // Username သို့မဟုတ် Password မှားယွင်းပါက
+                        showCustomAlert('Login Failed', 'Wrong Username or Password', false);
+                    }
+                }
+            } catch (err) {
+                console.error("Login Error:", err);
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                showCustomAlert('Connection Error', 'ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။ ခဏနေ ပြန်ကြိုးစားပါ။', false);
             }
         }
     </script>
