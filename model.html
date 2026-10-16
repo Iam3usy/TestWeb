@@ -62,7 +62,6 @@
                 if (rows.length > 0) {
                     container.innerHTML = '';
                     
-                    // ၁။ Sheet ထဲက model_name နှင့် model_image ရှိသော မော်ဒယ်စာရင်းများကို အရင်စုစည်းမည်
                     const modelMap = {};
 
                     rows.forEach(row => {
@@ -72,41 +71,43 @@
                         if (mName && !modelMap[mName]) {
                             modelMap[mName] = {
                                 name: mName,
-                                image: mImg || 'img/default-model.jpg',
+                                image: mImg,
                                 count: 0
                             };
                         }
                     });
 
-                    // ၂။ မော်ဒယ်တစ်ယောက်ချင်းစီအတွက် 'model' row ထဲတွင် ပါဝင်မှုကို စစ်ဆေးပြီး ဗီဒီယိုအရေအတွက် (Count) ကို တွက်ချက်မည်
                     const modelsList = Object.values(modelMap);
 
                     if (modelsList.length > 0) {
                         modelsList.forEach(modelItem => {
                             let videoCount = 0;
+                            const targetName = modelItem.name.toLowerCase();
 
                             rows.forEach(row => {
                                 const rowModelField = (row.model || '').trim();
                                 if (!rowModelField) return;
 
-                                // 'model' ကော်လံထဲတွင် မော်ဒယ်များ ကော်မာ(,)ဖြင့် သို့မဟုတ် အများကြီးပါနေလျှင် ခွဲထုတ်စစ်ဆေးမည်
                                 const modelsInRow = rowModelField.split(',').map(m => m.trim().toLowerCase());
                                 
-                                if (modelsInRow.includes(modelItem.name.toLowerCase())) {
+                                if (modelsInRow.includes(targetName) || rowModelField.toLowerCase().includes(targetName)) {
                                     videoCount++;
                                 }
                             });
 
                             modelItem.count = videoCount;
 
-                            // ၃။ HTML Card တည်ဆောက်ခြင်း
+                            const imageContent = modelItem.image 
+                                ? `<img src="${modelItem.image}" alt="${modelItem.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
+                                : `<div class="model-placeholder">150 x 150</div>`;
+
                             const card = document.createElement('a');
                             card.href = `search.html?model=${encodeURIComponent(modelItem.name)}`;
                             card.className = 'model-card';
 
                             card.innerHTML = `
                                 <div class="model-img-container">
-                                    <img src="${modelItem.image}" alt="${modelItem.name}" loading="lazy">
+                                    ${imageContent}
                                     <div class="video-count-badge">
                                         <i class="fa-solid fa-video"></i> ${modelItem.count} vids
                                     </div>
