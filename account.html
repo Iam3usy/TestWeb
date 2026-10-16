@@ -3,70 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account - My Hub</title>
+    <title>My Hub - Account</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+    <!-- Side Menu -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
-            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="toggleSidebar()" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
-            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li class="menu-item active" id="sidebarAuthItem"><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
+            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
+            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
+            <li><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li class="active"><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
         </ul>
     </nav>
 
-    <main class="main-content" id="mainContent">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="header">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
             <h1>Account Profile</h1>
         </div>
 
-        <div style="display: flex; justify-content: center; padding: 30px 15px;">
-            <div style="background: var(--card-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 15px; align-items: center;">
+        <div style="display: flex; justify-content: center; padding: 40px 15px;">
+            <div style="background: var(--card-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; align-items: center;">
                 
-                <!-- Profile Avatar -->
-                <div style="position: relative; width: 85px; height: 85px;">
-                    <img id="profileAvatarImg" src="https://via.placeholder.com/85" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
-                    <label for="avatarFile" style="position: absolute; bottom: 0; right: 0; background: var(--accent-color); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 11px;">
-                        <i class="fa-solid fa-camera"></i>
-                    </label>
-                    <input type="file" id="avatarFile" accept="image/*" style="display: none;" onchange="changeProfileAvatar(event)">
+                <div style="width: 75px; height: 75px; background: rgba(233, 30, 99, 0.15); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--primary-color); font-size: 30px; border: 2px solid var(--primary-color);">
+                    <i class="fa-solid fa-user"></i>
                 </div>
 
-                <div style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
                     <div>
-                        <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 3px;">Username</label>
+                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">Username</label>
                         <input type="text" id="accUsername" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
                     </div>
                     <div>
-                        <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 3px;">VIP Key</label>
+                        <label style="display: block; font-size: 11px; color: #a4b0be; margin-bottom: 3px;">VIP Key</label>
                         <input type="text" id="accVipKey" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 3px;">Expire Date</label>
-                        <input type="text" id="accExpireDate" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 3px;">Device ID</label>
-                        <input type="text" id="accDeviceId" readonly style="width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px;">
                     </div>
                 </div>
 
-                <!-- Buttons -->
-                <div style="width: 100%; display: flex; gap: 10px; margin-top: 5px;">
-                    <a href="#" style="flex: 1; text-align: center; background: #2ed573; color: #fff; padding: 11px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px;">Renew Account</a>
-                    <button onclick="handleLogout()" style="flex: 1; background: var(--accent-color); color: #fff; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Logout</button>
-                </div>
+                <button onclick="handleLogout()" style="width: 100%; background: var(--primary-color); color: #fff; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 5px;">Logout</button>
 
             </div>
         </div>
@@ -82,27 +67,7 @@
             }
             document.getElementById('accUsername').value = localStorage.getItem('username') || '';
             document.getElementById('accVipKey').value = localStorage.getItem('vip_key') || '';
-            document.getElementById('accExpireDate').value = localStorage.getItem('expire_date') || '';
-            document.getElementById('accDeviceId').value = localStorage.getItem('device_id') || '';
-
-            const savedAvatar = localStorage.getItem('profile_avatar');
-            if (savedAvatar) {
-                document.getElementById('profileAvatarImg').src = savedAvatar;
-            }
         });
-
-        function changeProfileAvatar(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Img = e.target.result;
-                    localStorage.setItem('profile_avatar', base64Img);
-                    document.getElementById('profileAvatarImg').src = base64Img;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
 
         function handleLogout() {
             localStorage.clear();
