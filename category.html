@@ -3,40 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Categories - My Hub</title>
+    <title>My Hub - Category List</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://vjs.zencdn.net/8.10.0/video-js.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+    <!-- Side Menu -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
-            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="toggleSidebar()" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
-            <li class="menu-item active"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li class="menu-item" id="sidebarAuthItem"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
+            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
+            <li><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li class="active"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
         </ul>
     </nav>
 
-    <main class="main-content" id="mainContent">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="header">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1 id="pageTitle">Categories</h1>
+            <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1>Categories</h1>
         </div>
 
-        <div id="categoryContainer" style="display: grid; padding: 15px;"></div>
-        <div id="videoContainer" class="video-grid"></div>
+        <!-- Category List Container -->
+        <div id="categoryContainer" class="model-grid">
+            <div class="status-msg">Loading...</div>
+        </div>
     </main>
 
-    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbw6lq48q4joTcZWkOblA-gxy-UubGVjIHNaq82_epx6IwbVK5kC_qccJ7QQscismt0sWQ/exec";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchCategories();
+        });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        async function fetchCategories() {
+            const container = document.getElementById('categoryContainer');
+            try {
+                const response = await fetch(`${API_URL}?action=getAllData`);
+                const data = await response.json();
+
+                const rows = Array.isArray(data) ? data : (data.videos || data.data || []);
+
+                if (rows.length > 0) {
+                    container.innerHTML = '';
+                    
+                    // ၁။ Sheet ထဲက category_name ရှိသမျှ အားလုံးကို ထပ်မပါအောင် စုစည်းမည်
+                    const categoryMap = {};
+
+                    rows.forEach(row => {
+                        const catName = (row.category_name || '').trim();
+                        const catImg = (row.category_image || '').trim();
+
+                        if (catName && !categoryMap[catName]) {
+                            categoryMap[catName] = {
+                                name: catName,
+                                image: catImg,
+                                count: 0
+                            };
+                        }
+                    });
+
+                    // ၂. Array သို့ ပြောင်းပြီး A to Z (Alphabetical) စနစ်ဖြင့် အစဉ်လိုက် စီမည်
+                    const categoriesList = Object.values(categoryMap).sort((a, b) => 
+                        a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
+                    );
+
+                    if (categoriesList.length > 0) {
+                        categoriesList.forEach(catItem => {
+                            let videoCount = 0;
+                            const targetName = catItem.name.toLowerCase();
+
+                            // ၃။ 'category' ကော်လံထဲတွင် ပါဝင်မှုကို စစ်ဆေးပြီး အရေအတွက် ရေတွက်မည်
+                            rows.forEach(row => {
+                                const rowCatField = (row.category || '').trim();
+                                if (!rowCatField) return;
+
+                                const categoriesInRow = rowCatField.split(',').map(c => c.trim().toLowerCase());
+                                
+                                if (categoriesInRow.includes(targetName) || rowCatField.toLowerCase().includes(targetName)) {
+                                    videoCount++;
+                                }
+                            });
+
+                            catItem.count = videoCount;
+
+                            // ၄။ ပုံရှိလျှင် ပုံပြမည်၊ မရှိလျှင် Placeholder (150 x 150) ပြမည်
+                            const imageContent = catItem.image 
+                                ? `<img src="${catItem.image}" alt="${catItem.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
+                                : `<div class="model-placeholder">150 x 150</div>`;
+
+                            // ၅။ Card တည်ဆောက်ခြင်း (Model CSS Classes များကို တိုက်ရိုက် အသုံးပြုထားပါသည်)
+                            const card = document.createElement('a');
+                            card.href = `search.html?category=${encodeURIComponent(catItem.name)}`;
+                            card.className = 'model-card';
+
+                            card.innerHTML = `
+                                <div class="model-img-container">
+                                    ${imageContent}
+                                    <div class="video-count-badge">
+                                        <i class="fa-solid fa-video"></i> ${catItem.count} vids
+                                    </div>
+                                </div>
+                                <div class="model-name">${catItem.name}</div>
+                            `;
+                            container.appendChild(card);
+                        });
+                    } else {
+                        container.innerHTML = '<div class="status-msg">No categories found</div>';
+                    }
+                } else {
+                    container.innerHTML = '<div class="status-msg">No categories found</div>';
+                }
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                container.innerHTML = '<div class="status-msg">Failed to load data</div>';
+            }
+        }
+    </script>
 </body>
 </html>
