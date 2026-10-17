@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         .search-box { 
-            margin-bottom: 25px; 
+            margin: 15px 0 25px 0; 
             display: flex; 
             gap: 10px; 
+            width: 100%;
         }
         
         .search-input { 
@@ -22,6 +23,8 @@
             border-radius: 8px; 
             font-size: 14px; 
             outline: none; 
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .search-input:focus {
@@ -42,7 +45,7 @@
             gap: 8px;
         }
 
-        /* Model -> 3 Columns Grid */
+        /* 1. Model Layout -> 3 Columns Grid */
         .model-grid-3col {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -51,7 +54,7 @@
             grid-column: 1 / -1;
         }
 
-        /* Category -> 3 Columns Grid */
+        /* 2. Category Layout -> 3 Columns Grid */
         .category-grid-3col {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -60,7 +63,7 @@
             grid-column: 1 / -1;
         }
 
-        /* Video -> 2 Columns Grid */
+        /* 3. Video Layout -> 2 Columns Grid */
         .video-grid-2col {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -129,27 +132,27 @@
 </head>
 <body>
 
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar Navigation (မူလ CSS Class နာမည်များအတိုင်း) -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
             <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
-            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item active"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li class="menu-item"><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
+            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
+            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
+            <li><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="active"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
         </ul>
     </nav>
 
     <!-- Main Content Area -->
     <main class="main-content" id="mainContent">
         <div class="header">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <button class="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1>Search Videos</h1>
         </div>
 
@@ -184,7 +187,6 @@
                 loadDataFromWorker();
             }
 
-            // Data များ ရောက်အောင် ခဏစောင့်ပြီး ရှာဖွေမှုပြုလုပ်မည်
             setTimeout(() => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const modelParam = urlParams.get('model');
@@ -213,14 +215,14 @@
 
             const isLoggedIn = checkUserLoggedIn();
 
-            // videoData ထဲမှ အကောင့်မဝင်ထားလျှင် VIP များကို ဖြတ်ထုတ်မည်
+            // အကောင့်မဝင်ထားလျှင် VIP ဗီဒီယိုများကို ဖြတ်ထုတ်မည်
             const filteredVideoData = safeVideoData.filter(v => {
                 const isVipVideo = v.isVip || v.is_vip === true || String(v.is_vip) === 'true';
                 if (!isLoggedIn && isVipVideo) return false;
                 return true;
             });
 
-            // ၁။ Model Data မရှိခဲ့ပါက VideoData ထဲမှ Dynamic ပြန်ဆွဲထုတ်ပေးခြင်း
+            // Model Data ကို Dynamic ဆွဲထုတ်ပေးခြင်း
             let finalModelData = [...rawModelData];
             if (finalModelData.length === 0) {
                 const modelMap = {};
@@ -242,7 +244,7 @@
                 finalModelData = Object.values(modelMap);
             }
 
-            // ၂။ Category Data မရှိခဲ့ပါက VideoData ထဲမှ Dynamic ပြန်ဆွဲထုတ်ပေးခြင်း
+            // Category Data ကို Dynamic ဆွဲထုတ်ပေးခြင်း
             let finalCategoryData = [...rawCategoryData];
             if (finalCategoryData.length === 0) {
                 const catMap = {};
@@ -264,13 +266,11 @@
                 finalCategoryData = Object.values(catMap);
             }
 
-            // Filter လုပ်ခြင်း
             let matchedModels = [];
             let matchedCategories = [];
             let matchedVideos = [];
 
             if (!query) {
-                // ဘာမှမရှာရသေးလျှင် Model နှင့် Category များကို အကုန်ပြပေးမည်
                 matchedModels = finalModelData;
                 matchedCategories = finalCategoryData;
                 matchedVideos = [];
