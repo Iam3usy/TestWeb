@@ -64,10 +64,10 @@
                     
                     const categoryMap = {};
 
-                    // ၁။ Sheet ထဲက category_name ရှိသမျှ အားလုံးကို စုစည်းမည် (Model တုန်းကလိုပဲ ပုံနဲ့နာမည်ကို တွဲယူမည်)
+                    // Model ဖိုင်ပုံစံအတိုင်း String သို့ တိကျစွာပြောင်းပြီး စုစည်းခြင်း
                     rows.forEach(row => {
-                        const catName = (row.category_name || '').trim();
-                        const catImg = (row.category_image || '').trim();
+                        const catName = String(row.category_name || '').trim();
+                        const catImg = String(row.category_image || '').trim();
 
                         if (catName && !categoryMap[catName]) {
                             categoryMap[catName] = {
@@ -80,7 +80,7 @@
                         }
                     });
 
-                    // ၂။ Array သို့ ပြောင်းပြီး A to Z (Alphabetical Order) အစဉ်လိုက် စီမည်
+                    // A to Z (Alphabetical) အစဉ်လိုက် စီမည်
                     const categoriesList = Object.values(categoryMap).sort((a, b) => 
                         a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
                     );
@@ -90,9 +90,8 @@
                             let videoCount = 0;
                             const targetName = catItem.name.toLowerCase();
 
-                            // ၃။ 'category' ကော်လံထဲတွင် ပါဝင်မှုကို စစ်ဆေးပြီး ဗီဒီယို အရေအတွက် ရေတွက်မည်
                             rows.forEach(row => {
-                                const rowCatField = (row.category || '').trim();
+                                const rowCatField = String(row.category || '').trim();
                                 if (!rowCatField) return;
 
                                 const categoriesInRow = rowCatField.split(',').map(c => c.trim().toLowerCase());
@@ -104,25 +103,22 @@
 
                             catItem.count = videoCount;
 
-                            // ၄။ ပုံရှိလျှင် ပုံပြမည်၊ မရှိလျှင် Placeholder (150 x 150) ပြမည်
                             const imageContent = catItem.image 
                                 ? `<img src="${catItem.image}" alt="${catItem.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
                                 : `<div class="model-placeholder">150 x 150</div>`;
 
-                            // ၅။ Card တည်ဆောက်ခြင်း (Model CSS များကို တိုက်ရိုက်အသုံးပြုထားသည်)
                             const card = document.createElement('a');
                             card.href = `search.html?category=${encodeURIComponent(catItem.name)}`;
                             card.className = 'model-card';
 
                             card.innerHTML = `
-                                <div class="model-img-container">
+                                ` + `<div class="model-img-container">
                                     ${imageContent}
                                     <div class="video-count-badge">
                                         <i class="fa-solid fa-video"></i> ${catItem.count} vids
                                     </div>
                                 </div>
-                                <div class="model-name">${catItem.name}</div>
-                            `;
+                                <div class="model-name">${catItem.name}</div>`;
                             container.appendChild(card);
                         });
                     } else {
