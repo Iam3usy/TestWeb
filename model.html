@@ -36,7 +36,7 @@
 
         <!-- Container (Model list ချိန် model-grid, Video list ချိန် video-grid သုံးမည်) -->
         <div id="videoContainer" class="model-grid">
-            <div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Loading...</div>
+            <div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Loading data...</div>
         </div>
     </main>
 
@@ -44,47 +44,60 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            // app.js ကနေ ဒေတာဆွဲယူပြီးတာနဲ့ အလုပ်လုပ်စေရန်
-            const checkInterval = setInterval(() => {
-                if (typeof videoData !== 'undefined' && videoData.length > 0) {
-                    clearInterval(checkInterval);
-                    renderModelPageContent();
-                }
-            }, 100);
+        const API_URL = "https://script.google.com/macros/s/AKfycbw6lq48q4joTcZWkOblA-gxy-UubGVjIHNaq82_epx6IwbVK5kC_qccJ7QQscismt0sWQ/exec";
+        let allSheetData = [];
 
-            // Timeout 3 စက္ကန့်အတွင်း ဒေတာမရောက်လာရင်လည်း တန်းပြရန်
-            setTimeout(() => {
-                clearInterval(checkInterval);
-                renderModelPageContent();
-            }, 3000);
+        document.addEventListener("DOMContentLoaded", async () => {
+            await fetchAllSheetData();
+            renderModelPage();
         });
 
-        function renderModelPageContent() {
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Google Apps Script ကနေ ဒေတာ တိုက်ရိုက်ဆွဲယူခြင်း
+        async function fetchAllSheetData() {
+            try {
+                const response = await fetch(`${API_URL}?action=getAllData`);
+                const data = await response.json();
+                allSheetData = Array.isArray(data) ? data : (data.videos || data.data || []);
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                const container = document.getElementById('videoContainer');
+                if (container) container.innerHTML = '<div class="status-msg" style="color:#e50914; text-align:center; padding:30px; grid-column:1/-1;">Failed to load data from server</div>';
+            }
+        }
+
+        function renderModelPage() {
             const container = document.getElementById('videoContainer');
             const titleElement = document.getElementById('pageTitle');
             if (!container) return;
 
             const urlParams = new URLSearchParams(window.location.search);
             const selectedModel = urlParams.get('model');
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const isLoggedIn = localStorage.getItem('currentUser') || localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
 
-            const availableVideos = (typeof videoData !== 'undefined' ? videoData : []).filter(v => {
-                if (!isLoggedIn && v.isVip) return false;
-                return true;
-            });
+            if (allSheetData.length === 0) {
+                container.innerHTML = '<div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">No data available</div>';
+                return;
+            }
 
+            // အကယ်၍ URL မှာ ?model=Name ပါလာလျှင် (Model နှိပ်ထားလျှင်)
             if (selectedModel) {
-                const decodedModel = decodeURIComponent(selectedModel);
+                const decodedModel = decodeURIComponent(selectedModel).trim();
                 if (titleElement) titleElement.innerText = decodedModel;
 
-                // ထို Model ပါသော ဗီဒီယိုများကို စစ်ထုတ်မည်
-                const matchedVideos = availableVideos.filter(v => {
-                    const mField = String(v.model || '').toLowerCase();
-                    return mField.includes(decodedModel.toLowerCase());
+                // model_name (သို့မဟုတ် model) က field ထဲမှာ တူညီသော ဇာတ်ကားများကို စစ်ထုတ်မည်
+                const matchedVideos = allSheetData.filter(row => {
+                    const isVipVideo = row.isVip || row.is_vip === true || String(row.is_vip) === 'true';
+                    if (!isLoggedIn && isVipVideo) return false;
+
+                    const mName = String(row.model_name || row.model || '').trim().toLowerCase();
+                    return mName.includes(decodedModel.toLowerCase());
                 });
 
-                container.className = 'video-grid'; // Index ကဲ့သို့ 2 columns grid သုံးမည်
+                container.className = 'video-grid'; // index.html ကဲ့သို့ 2/3 columns grid သုံးမည်
 
                 if (matchedVideos.length === 0) {
                     container.innerHTML = `<p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">"${decodedModel}" နှင့် ပတ်သက်သော ဗီဒီယို မရှိသေးပါ။</p>`;
@@ -93,25 +106,35 @@
 
                 container.innerHTML = '';
                 matchedVideos.forEach(v => {
+                    const title = String(v.title || v.name || 'Untitled');
+                    const fileId = String(v.file_id || v.id || '');
+                    const thumb = String(v.thumbnail || v.thumb || '').trim();
+                    const streamUrl = String(v.stream_url || `${STREAM_BASE_URL}${fileId}`);
+                    const views = v.views || 0;
+
                     container.innerHTML += `
-                        <div class="video-card" onclick="openPlayer('${v.stream_url}')">
+                        <div class="video-card" onclick="openPlayer('${streamUrl}')">
                             <div class="thumbnail-box">
-                                <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
-                                <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
+                                <video src="${thumb}" autoplay loop muted playsinline></video>
+                                <span class="view-badge"><i class="fa-solid fa-eye"></i> ${views}</span>
                             </div>
-                            <div class="video-info"><h3>${v.title}</h3></div>
+                            <div class="video-info"><h3>${title}</h3></div>
                         </div>
                     `;
                 });
 
             } else {
+                // မပါလာလျှင် Model စာရင်း အားလုံးပြမည်
                 if (titleElement) titleElement.innerText = "Models Hub";
 
-                // Model အားလုံး စုစည်းမည်
                 const modelMap = {};
-                availableVideos.forEach(v => {
-                    const mName = String(v.model || '').trim();
-                    const mImg = String(v.model_image || '').trim();
+                allSheetData.forEach(row => {
+                    const isVipVideo = row.isVip || row.is_vip === true || String(row.is_vip) === 'true';
+                    if (!isLoggedIn && isVipVideo) return;
+
+                    const mName = String(row.model_name || row.model || '').trim();
+                    const mImg = String(row.model_image || row.image || '').trim();
+
                     if (mName && !modelMap[mName]) {
                         modelMap[mName] = {
                             name: mName,
@@ -135,13 +158,13 @@
                 container.innerHTML = '';
                 modelsList.forEach(m => {
                     let vCount = 0;
-                    availableVideos.forEach(v => {
-                        if (String(v.model || '').toLowerCase().includes(m.name.toLowerCase())) {
+                    allSheetData.forEach(row => {
+                        const mField = String(row.model_name || row.model || '').trim().toLowerCase();
+                        if (mField.includes(m.name.toLowerCase())) {
                             vCount++;
                         }
                     });
 
-                    // Model ပုံအတွက် Thumbnail လိုပဲ ဗီဒီယို (သို့) ပုံ အသုံးပြုရန်
                     const imgTag = m.image 
                         ? `<img src="${m.image}" alt="${m.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>No Image</div>'">`
                         : `<div class="model-placeholder">No Image</div>`;
