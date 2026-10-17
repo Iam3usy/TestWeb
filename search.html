@@ -6,6 +6,14 @@
     <title>My Hub - Search</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ဗီဒီယိုများအတွက် Grid 2 ကတ် သီးသန့်စတိုင် */
+        .video-grid-2col {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+    </style>
 </head>
 <body>
 
@@ -43,6 +51,7 @@
 
         <!-- Results Container -->
         <div id="searchResults">
+            <div class="status-msg">Type something or select a model/category to search...</div>
         </div>
     </main>
 
@@ -54,7 +63,6 @@
         document.addEventListener("DOMContentLoaded", async () => {
             await fetchAllData();
             
-            // URL ထဲမှ ?model=... သို့မဟုတ် ?category=... ကို ဖတ်ယူ၍ အလိုအလျောက် ရှာဖွေပေးခြင်း
             const urlParams = new URLSearchParams(window.location.search);
             const modelParam = urlParams.get('model');
             const categoryParam = urlParams.get('category');
@@ -112,21 +120,18 @@
 
                 const title = String(row.title || '').trim();
 
-                // Model စစ်ဆေးခြင်း
                 if (mName && (mName.toLowerCase().includes(lowerQuery) || rowModelField.toLowerCase().includes(lowerQuery))) {
                     if (!matchedModels[mName]) {
                         matchedModels[mName] = { name: mName, image: mImg, count: 0 };
                     }
                 }
 
-                // Category စစ်ဆေးခြင်း
                 if (catName && (catName.toLowerCase().includes(lowerQuery) || rowCatField.toLowerCase().includes(lowerQuery))) {
                     if (!matchedCategories[catName]) {
                         matchedCategories[catName] = { name: catName, image: catImg, count: 0 };
                     }
                 }
 
-                // Video စစ်ဆေးခြင်း
                 if (
                     title.toLowerCase().includes(lowerQuery) ||
                     rowModelField.toLowerCase().includes(lowerQuery) ||
@@ -136,7 +141,6 @@
                 }
             });
 
-            // Model Video Count တွက်ချက်ခြင်း
             const modelsList = Object.values(matchedModels);
             modelsList.forEach(m => {
                 let cnt = 0;
@@ -147,7 +151,6 @@
                 m.count = cnt;
             });
 
-            // Category Video Count တွက်ချက်ခြင်း
             const categoriesList = Object.values(matchedCategories);
             categoriesList.forEach(c => {
                 let cnt = 0;
@@ -160,7 +163,7 @@
 
             let htmlOutput = '';
 
-            // ၁။ Model List Section (A to Z)
+            // ၁။ Model List Section (3 cols Grid ပုံစံအတိုင်း)
             if (modelsList.length > 0) {
                 modelsList.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
                 htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-user-star"></i> Models (${modelsList.length})</div>`;
@@ -183,7 +186,7 @@
                 htmlOutput += `</div>`;
             }
 
-            // ၂။ Category List Section (A to Z)
+            // ၂။ Category List Section (3 cols Grid ပုံစံအတိုင်း)
             if (categoriesList.length > 0) {
                 categoriesList.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
                 htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-hashtag"></i> Categories (${categoriesList.length})</div>`;
@@ -206,11 +209,11 @@
                 htmlOutput += `</div>`;
             }
 
-            // ၃။ Video List Section
+            // ၃။ Video List Section (Grid ၂ ကတ် - 2 cols သို့ ပြောင်းထားသည်)
             if (matchedVideos.length > 0) {
                 htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-video"></i> Videos (${matchedVideos.length})</div>`;
-                htmlOutput += `<div class="model-grid">`;
-                matchedVideos.forEach(v => {
+                htmlOutput += `<div class="video-grid-2col">`;
+                matchedVideos.instances = matchedVideos.forEach(v => {
                     const vTitle = String(v.title || 'Untitled');
                     const vThumbnail = String(v.thumbnail || '').trim();
                     const vFileId = String(v.file_id || '');
