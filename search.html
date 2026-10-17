@@ -3,240 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Hub - Search</title>
+    <title>Search - My Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* ဗီဒီယိုများအတွက် Grid 2 ကတ် သီးသန့်စတိုင် */
-        .video-grid-2col {
+        .search-box { margin-bottom: 25px; display: flex; gap: 10px; }
+        .search-input { flex: 1; padding: 12px; background: var(--card-bg, #1e1e1e); border: 1px solid var(--border-color, #333); color: white; border-radius: 6px; font-size: 14px; outline: none; }
+        
+        /* Model နဲ့ Category အတွက် အကွက်သေးသေးလေးတွေ ဘေးချင်းယှဉ်ပေါ်မယ့် Grid ပုံစံ */
+        .small-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            width: 100%;
+            grid-column: 1 / -1;
         }
     </style>
 </head>
 <body>
-
-    <!-- Side Menu -->
+    <!-- Sidebar Navigation -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
-            <button onclick="toggleSidebar()" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
-            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
-            <li><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li class="active"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
+            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
+            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li class="menu-item active"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li class="menu-item"><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
         </ul>
     </nav>
 
-    <!-- Main Content -->
-    <main class="main-content">
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
         <div class="header">
-            <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
-            <h1>Search Hub</h1>
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <h1>Search Videos</h1>
         </div>
 
-        <!-- Search Input Bar -->
-        <div class="search-bar-container">
-            <div class="search-input-wrapper">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder="Search models, categories, or videos..." oninput="handleSearch()">
-            </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="Title, Model သို့မဟုတ် Category ဖြင့် ရှာရန်..." oninput="handleSearch()">
         </div>
 
-        <!-- Results Container -->
-        <div id="searchResults">
-            <div class="status-msg">Type something or select a model/category to search...</div>
-        </div>
+        <div class="video-grid" id="searchResultContainer"></div>
     </main>
 
     <script src="js/app.js"></script>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbw6lq48q4joTcZWkOblA-gxy-UubGVjIHNaq82_epx6IwbVK5kC_qccJ7QQscismt0sWQ/exec";
-        let allSheetData = [];
+        function renderContent() { return; }
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            await fetchAllData();
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const modelParam = urlParams.get('model');
-            const categoryParam = urlParams.get('category');
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.toggle('open');
+        }
 
-            if (modelParam) {
-                document.getElementById('searchInput').value = modelParam;
-                performSearch(modelParam);
-            } else if (categoryParam) {
-                document.getElementById('searchInput').value = categoryParam;
-                performSearch(categoryParam);
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('searchResultContainer');
+            if (container) container.innerHTML = '';
+            if (typeof loadDataFromWorker === 'function') {
+                loadDataFromWorker();
             }
         });
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
-        async function fetchAllData() {
-            try {
-                const response = await fetch(`${API_URL}?action=getAllData`);
-                const data = await response.json();
-                allSheetData = Array.isArray(data) ? data : (data.videos || data.data || []);
-            } catch (err) {
-                console.error("Error fetching data:", err);
-                document.getElementById('searchResults').innerHTML = '<div class="status-msg">Failed to load data</div>';
-            }
-        }
-
         function handleSearch() {
-            const query = document.getElementById('searchInput').value.trim();
-            performSearch(query);
-        }
+            const container = document.getElementById('searchResultContainer');
+            const searchInput = document.getElementById('searchInput');
+            
+            if (!searchInput || !container) return;
 
-        function performSearch(query) {
-            const container = document.getElementById('searchResults');
-            const lowerQuery = query.toLowerCase();
-
-            if (!lowerQuery) {
-                container.innerHTML = '<div class="status-msg">Type something or select a model/category to search...</div>';
+            const query = searchInput.value.toLowerCase().trim();
+            
+            if (!query) {
+                container.innerHTML = '';
                 return;
             }
 
-            const matchedModels = {};
-            const matchedCategories = {};
-            const matchedVideos = [];
+            const safeModelData = (typeof modelData !== 'undefined' && Array.isArray(modelData)) ? modelData : [];
+            const safeCategoryData = (typeof categoryData !== 'undefined' && Array.isArray(categoryData)) ? categoryData : [];
+            const safeVideoData = (typeof videoData !== 'undefined' && Array.isArray(videoData)) ? videoData : [];
 
-            allSheetData.forEach(row => {
-                const mName = String(row.model_name || '').trim();
-                const mImg = String(row.model_image || '').trim();
-                const rowModelField = String(row.model || '').trim();
+            if (safeModelData.length === 0 && safeVideoData.length === 0) {
+                container.innerHTML = '<p class="empty-msg" style="color:#e50914; text-align:center; padding:30px; grid-column: 1/-1;">ဒေတာများ ဆွဲနေဆဲ ဖြစ်ပါသည် (သို့) လိုင်းမကောင်းပါ။ ခဏစောင့်ပါ။</p>';
+                return;
+            }
 
-                const catName = String(row.category_name || '').trim();
-                const catImg = String(row.category_image || '').trim();
-                const rowCatField = String(row.category || '').trim();
-
-                const title = String(row.title || '').trim();
-
-                if (mName && (mName.toLowerCase().includes(lowerQuery) || rowModelField.toLowerCase().includes(lowerQuery))) {
-                    if (!matchedModels[mName]) {
-                        matchedModels[mName] = { name: mName, image: mImg, count: 0 };
-                    }
-                }
-
-                if (catName && (catName.toLowerCase().includes(lowerQuery) || rowCatField.toLowerCase().includes(lowerQuery))) {
-                    if (!matchedCategories[catName]) {
-                        matchedCategories[catName] = { name: catName, image: catImg, count: 0 };
-                    }
-                }
-
-                if (
-                    title.toLowerCase().includes(lowerQuery) ||
-                    rowModelField.toLowerCase().includes(lowerQuery) ||
-                    rowCatField.toLowerCase().includes(lowerQuery)
-                ) {
-                    matchedVideos.push(row);
-                }
+            // ၁။ Model များကို ရှာဖွေခြင်း
+            const matchedModels = safeModelData.filter(model => {
+                const modelName = (model.name || model.model_name || '').toLowerCase();
+                return modelName.includes(query);
             });
 
-            const modelsList = Object.values(matchedModels);
-            modelsList.forEach(m => {
-                let cnt = 0;
-                allSheetData.forEach(row => {
-                    const rf = String(row.model || '').toLowerCase();
-                    if (rf.includes(m.name.toLowerCase())) cnt++;
-                });
-                m.count = cnt;
+            // ၂။ Category များကို ရှာဖွေခြင်း
+            const matchedCategories = safeCategoryData.filter(cat => {
+                const catName = (cat.name || cat.category_name || '').toLowerCase();
+                return catName.includes(query);
             });
 
-            const categoriesList = Object.values(matchedCategories);
-            categoriesList.forEach(c => {
-                let cnt = 0;
-                allSheetData.forEach(row => {
-                    const cf = String(row.category || '').toLowerCase();
-                    if (cf.includes(c.name.toLowerCase())) cnt++;
-                });
-                c.count = cnt;
+            // ၃။ ဗီဒီယိုများကို ရှာဖွေခြင်း (VIP Content မဟုတ်သည်များကို ပုံမှန်ရှာမည်)
+            const publicVideos = safeVideoData.filter(v => v.file_id && String(v.file_id).trim() !== '' && !v.isVip);
+            const matchedVideos = publicVideos.filter(video => {
+                const title = (video.title || '').toLowerCase();
+                const modelField = (video.model || '').toLowerCase();
+                const catField = (video.category || '').toLowerCase();
+                const fileId = (video.file_id || '').toLowerCase();
+                
+                return title.includes(query) || modelField.includes(query) || catField.includes(query) || fileId.toLowerCase().includes(query);
             });
 
-            let htmlOutput = '';
+            container.innerHTML = '';
 
-            // ၁။ Model List Section (3 cols Grid ပုံစံအတိုင်း)
-            if (modelsList.length > 0) {
-                modelsList.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
-                htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-user-star"></i> Models (${modelsList.length})</div>`;
-                htmlOutput += `<div class="model-grid">`;
-                modelsList.forEach(m => {
-                    const imgContent = m.image 
-                        ? `<img src="${m.image}" alt="${m.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
-                        : `<div class="model-placeholder">150 x 150</div>`;
-                    
-                    htmlOutput += `
-                        <a href="search.html?model=${encodeURIComponent(m.name)}" class="model-card">
-                            <div class="model-img-container">
-                                ${imgContent}
-                                <div class="video-count-badge"><i class="fa-solid fa-video"></i> ${m.count} vids</div>
+            if (matchedModels.length === 0 && matchedCategories.length === 0 && matchedVideos.length === 0) {
+                container.innerHTML = '<p class="empty-msg" style="color:#888; text-align:center; padding:40px; grid-column: 1/-1;">ရှာဖွေမှု ရလဒ် မရှိပါ။</p>';
+                return;
+            }
+
+            // --- Search Models Section ---
+            if (matchedModels.length > 0) {
+                container.innerHTML += `<div style="grid-column: 1/-1; font-size:16px; font-weight:bold; color:#fff; margin-top:10px; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;"><i class="fa-solid fa-user-star"></i> Models</div>`;
+                
+                let modelHtml = `<div class="small-grid">`;
+                matchedModels.forEach(model => {
+                    const displayImg = (model.image && model.image.trim() !== '') ? model.image : 'https://via.placeholder.com/150';
+                    modelHtml += `
+                        <a href="model.html?model=${encodeURIComponent(model.name)}" style="text-decoration:none; display:flex; flex-direction:column; background:var(--card-bg, #1a1a24); border-radius:10px; overflow:hidden; border:1px solid var(--border-color, #282836);">
+                            <div style="position:relative; width:100%; height:135px; background:#000; overflow:hidden;">
+                                <img src="${displayImg}" alt="${model.name}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
+                                <span style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;">${model.count || 0} vids</span>
                             </div>
-                            <div class="model-name">${m.name}</div>
+                            <div style="padding:6px 4px; text-align:center;">
+                                <h3 style="font-size:12px; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${model.name}</h3>
+                            </div>
                         </a>
                     `;
                 });
-                htmlOutput += `</div>`;
+                modelHtml += `</div>`;
+                container.innerHTML += modelHtml;
             }
 
-            // ၂။ Category List Section (3 cols Grid ပုံစံအတိုင်း)
-            if (categoriesList.length > 0) {
-                categoriesList.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
-                htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-hashtag"></i> Categories (${categoriesList.length})</div>`;
-                htmlOutput += `<div class="model-grid">`;
-                categoriesList.forEach(c => {
-                    const imgContent = c.image 
-                        ? `<img src="${c.image}" alt="${c.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
-                        : `<div class="model-placeholder">150 x 150</div>`;
-                    
-                    htmlOutput += `
-                        <a href="search.html?category=${encodeURIComponent(c.name)}" class="model-card">
-                            <div class="model-img-container">
-                                ${imgContent}
-                                <div class="video-count-badge"><i class="fa-solid fa-video"></i> ${c.count} vids</div>
+            // --- Search Categories Section ---
+            if (matchedCategories.length > 0) {
+                container.innerHTML += `<div style="grid-column: 1/-1; font-size:16px; font-weight:bold; color:#fff; margin-top:20px; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;"><i class="fa-solid fa-hashtag"></i> Categories</div>`;
+                
+                let catHtml = `<div class="small-grid">`;
+                matchedCategories.forEach(cat => {
+                    const displayImg = (cat.image && cat.image.trim() !== '') ? cat.image : 'https://via.placeholder.com/150';
+                    catHtml += `
+                        <a href="category.html?category=${encodeURIComponent(cat.name)}" style="text-decoration:none; display:flex; flex-direction:column; background:var(--card-bg, #1a1a24); border-radius:10px; overflow:hidden; border:1px solid var(--border-color, #282836);">
+                            <div style="position:relative; width:100%; height:135px; background:#000; overflow:hidden;">
+                                <img src="${displayImg}" alt="${cat.name}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
+                                <span style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;">${cat.count || 0} vids</span>
                             </div>
-                            <div class="model-name">${c.name}</div>
+                            <div style="padding:8px 4px; text-align:center;">
+                                <h3 style="font-size:12px; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cat.name}</h3>
+                            </div>
                         </a>
                     `;
                 });
-                htmlOutput += `</div>`;
+                catHtml += `</div>`;
+                container.innerHTML += catHtml;
             }
 
-            // ၃။ Video List Section (Grid ၂ ကတ် - 2 cols သို့ ပြောင်းထားသည်)
+            // --- Search Videos Section ---
             if (matchedVideos.length > 0) {
-                htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-video"></i> Videos (${matchedVideos.length})</div>`;
-                htmlOutput += `<div class="video-grid-2col">`;
-                matchedVideos.instances = matchedVideos.forEach(v => {
-                    const vTitle = String(v.title || 'Untitled');
-                    const vThumbnail = String(v.thumbnail || '').trim();
-                    const vFileId = String(v.file_id || '');
-                    const thumbContent = vThumbnail 
-                        ? `<img src="${vThumbnail}" alt="${vTitle}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
-                        : `<div class="model-placeholder">150 x 150</div>`;
+                container.innerHTML += `<div style="grid-column: 1/-1; font-size:16px; font-weight:bold; color:#fff; margin-top:20px; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;"><i class="fa-solid fa-play-circle"></i> Videos</div>`;
+                matchedVideos.forEach(video => {
+                    const playerCall = typeof openPlayer === 'function' 
+                        ? `openPlayer('${video.file_id}', '${video.stream_url || ''}')` 
+                        : `window.location.href='player.html?id=${encodeURIComponent(video.file_id)}'`;
 
-                    htmlOutput += `
-                        <a href="player.html?id=${encodeURIComponent(vFileId)}" class="model-card">
-                            <div class="model-img-container">
-                                ${thumbContent}
+                    container.innerHTML += `
+                        <div class="video-card" onclick="${playerCall}" style="cursor:pointer; background:#1a1a24; border-radius:10px; overflow:hidden; border:1px solid #282836; display:flex; flex-direction:column;">
+                            <div class="thumbnail-box" style="position:relative; width:100%; height:150px; background:#000; overflow:hidden;">
+                                <video src="${video.thumbnail || ''}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; pointer-events:none; display:block; position:absolute; top:0; left:0;"></video>
+                                <span class="view-badge" style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.7); color:#fff; font-size:11px; padding:2px 6px; border-radius:4px; z-index:2;">
+                                    <i class="fa-solid fa-eye"></i> ${video.views || 0}
+                                </span>
                             </div>
-                            <div class="model-name">${vTitle}</div>
-                        </a>
+                            <div class="video-info" style="padding: 8px 10px;">
+                                <h3 style="font-size: 14px; margin: 0; color: #fff; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${video.title || ''}</h3>
+                            </div>
+                        </div>
                     `;
                 });
-                htmlOutput += `</div>`;
-            }
-
-            if (modelsList.length === 0 && categoriesList.length === 0 && matchedVideos.length === 0) {
-                container.innerHTML = '<div class="status-msg">No results found</div>';
-            } else {
-                container.innerHTML = htmlOutput;
             }
         }
     </script>
