@@ -36,7 +36,7 @@
 
         <!-- Container -->
         <div id="videoContainer" class="model-grid">
-            <div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Loading data...</div>
+            <div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Loading...</div>
         </div>
     </main>
 
@@ -44,20 +44,19 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // app.js ရဲ့ အလိုအလျောက် render လုပ်ခြင်းကို ဒီ page မှာ မလိုချင်၍ ယာယီကျော်ခိုင်းရန်
+        // app.js မှ loadDataFromWorker ဖြင့် videoData ရလာသည်အထိ စောင့်ဆိုင်းပြီးမှ render လုပ်ရန်
         window.addEventListener('DOMContentLoaded', () => {
-            // app.js မှ loadDataFromWorker ပြီးဆုံးချိန်တွင် သီးသန့်ခေါ်ရန်
             const checkDataInterval = setInterval(() => {
                 if (typeof videoData !== 'undefined' && videoData.length > 0) {
                     clearInterval(checkDataInterval);
-                    renderOnlyModelPage();
+                    renderModelPage();
                 }
             }, 50);
 
             // 3 seconds timeout 
             setTimeout(() => {
                 clearInterval(checkDataInterval);
-                renderOnlyModelPage();
+                renderModelPage();
             }, 3000);
         });
 
@@ -65,29 +64,29 @@
             document.getElementById('sidebar').classList.toggle('open');
         }
 
-        function renderOnlyModelPage() {
+        function renderModelPage() {
             const container = document.getElementById('videoContainer');
             const titleElement = document.getElementById('pageTitle');
             if (!container) return;
 
             const urlParams = new URLSearchParams(window.location.search);
             const selectedModel = urlParams.get('model');
-            const isLoggedIn = localStorage.getItem('currentUser') || localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-            const rawData = typeof videoData !== 'undefined' ? videoData : [];
+            const allVideos = typeof videoData !== 'undefined' ? videoData : [];
 
-            if (rawData.length === 0) {
-                container.innerHTML = '<div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">No data available</div>';
+            if (allVideos.length === 0) {
+                container.innerHTML = '<div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">ဗီဒီယို ဒေတာ မရှိသေးပါ။</div>';
                 return;
             }
 
-            // VIP စစ်ဆေးခြင်း
-            const availableVideos = rawData.filter(v => {
+            // အကောင့်မဝင်ထားလျှင် VIP ဖယ်ထုတ်ရန်
+            const availableVideos = allVideos.filter(v => {
                 if (!isLoggedIn && v.isVip) return false;
                 return true;
             });
 
-            // ၁။ Model တစ်ခုကို နှိပ်ထားလျှင် (အဲ့ဒီ Model ပါတဲ့ ဇာတ်ကားများကိုသာ 2/3 columns grid ဖြင့်ပြမည်)
+            // ၁။ မော်ဒယ်လ် တစ်ခုကို နှိပ်ထားလျှင် (အဲ့ဒီ Model ပါသော ဗီဒီယိုများကို ဇာတ်ကားကတ်ပြားများဖြင့် ပြမည်)
             if (selectedModel) {
                 const decodedModel = decodeURIComponent(selectedModel).trim();
                 if (titleElement) titleElement.innerText = decodedModel;
@@ -97,7 +96,7 @@
                     return mField.includes(decodedModel.toLowerCase());
                 });
 
-                container.className = 'video-grid'; // index.html ကဲ့သို့ ဇာတ်ကားကတ်ပြား Grid သို့ပြောင်းမည်
+                container.className = 'video-grid'; // Index ကဲ့သို့ ဇာတ်ကားပြ Grid သို့ပြောင်းမည်
 
                 if (matchedVideos.length === 0) {
                     container.innerHTML = `<p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">"${decodedModel}" နှင့် ပတ်သက်သော ဗီဒီယို မရှိသေးပါ။</p>`;
@@ -118,7 +117,7 @@
                 });
 
             } else {
-                // ၂။ Model ဝင်ရောက်ချိန် (Model စာရင်းများကို 3 columns model-grid ဖြင့်ပြမည်)
+                // ၂။ မော်ဒယ်လ် စာရင်း အားလုံးပြရန် (Model ကတ်ပြားများဖြင့် ပြမည်)
                 if (titleElement) titleElement.innerText = "Models";
 
                 const modelMap = {};
@@ -139,7 +138,7 @@
                     a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
                 );
 
-                container.className = 'model-grid'; // Model Grid သုံးမည်
+                container.className = 'model-grid'; // Model Grid သို့ပြောင်းမည်
 
                 if (modelsList.length === 0) {
                     container.innerHTML = '<p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">မော်ဒယ်လ် ဒေတာ မရှိသေးပါ။</p>';
