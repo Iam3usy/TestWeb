@@ -98,27 +98,28 @@
 
             const modelMap = new Map();
 
-            videos.forEach(v => {
-                if (v.model_name) {
-                    let names = v.model_name.split(',').map(n => n.trim()).filter(n => n !== '');
-                    names.forEach(name => {
-                        let lower = name.toLowerCase();
-                        if (!modelMap.has(lower)) {
-                            modelMap.set(lower, {
-                                name: name,
-                                image: v.model_image || 'https://via.placeholder.com/150',
-                                count: 0
-                            });
-                        } else {
-                            let m = modelMap.get(lower);
-                            if ((!m.image || m.image.includes('placeholder')) && v.model_image) {
-                                m.image = v.model_image;
-                            }
-                        }
-                    });
+videos.forEach(v => {
+    if (v.model_name) {
+        let names = v.model_name.split(',').map(n => n.trim()).filter(n => n !== '');
+        names.forEach(name => {
+            let lowerKey = name.toLowerCase().trim();
+            
+            if (!modelMap.has(lowerKey)) {
+                modelMap.set(lowerKey, {
+                    name: name,
+                    image: v.model_image || 'https://via.placeholder.com/150',
+                    count: 1
+                });
+            } else {
+                let m = modelMap.get(lowerKey);
+                m.count++;
+                if ((!m.image || m.image.includes('placeholder')) && v.model_image) {
+                    m.image = v.model_image;
                 }
-            });
-
+            }
+        });
+    }
+});
             videos.forEach(v => {
                 if (v.model) {
                     let vModels = v.model.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
