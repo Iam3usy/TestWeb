@@ -7,20 +7,128 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .search-box { margin-bottom: 25px; display: flex; gap: 10px; }
-        .search-input { flex: 1; padding: 12px; background: var(--card-bg, #1e1e1e); border: 1px solid var(--border-color, #333); color: white; border-radius: 6px; font-size: 14px; outline: none; }
+        .search-box { 
+            margin-bottom: 25px; 
+            display: flex; 
+            gap: 10px; 
+        }
         
-        /* Model နဲ့ Category အတွက် အကွက်သေးသေးလေးတွေ ဘေးချင်းယှဉ်ပေါ်မယ့် Grid ပုံစံ */
-        .small-grid {
+        .search-input { 
+            flex: 1; 
+            padding: 12px 15px; 
+            background: var(--card-bg, #1a1a24); 
+            border: 1px solid var(--border-color, #282836); 
+            color: #ffffff; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            outline: none; 
+        }
+
+        .search-input:focus {
+            border-color: #e50914;
+        }
+
+        .search-section-title {
+            grid-column: 1 / -1;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Model -> 3 Columns Grid */
+        .model-grid-3col {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             width: 100%;
             grid-column: 1 / -1;
         }
+
+        /* Category -> 3 Columns Grid */
+        .category-grid-3col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            grid-column: 1 / -1;
+        }
+
+        /* Video -> 2 Columns Grid */
+        .video-grid-2col {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            grid-column: 1 / -1;
+        }
+
+        .search-card {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            background: var(--card-bg, #1a1a24);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color, #282836);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .search-card:active {
+            transform: scale(0.98);
+        }
+
+        .card-thumb-box {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .card-thumb-box img, 
+        .card-thumb-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-badge {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 4px;
+            z-index: 2;
+        }
+
+        .card-info {
+            padding: 6px 4px;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 12px;
+            margin: 0;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
+
     <!-- Sidebar Navigation -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
@@ -45,11 +153,13 @@
             <h1>Search Videos</h1>
         </div>
 
+        <!-- Search Input Field -->
         <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" placeholder="Title, Model သို့မဟုတ် Category ဖြင့် ရှာရန်..." oninput="handleSearch()">
+            <input type="text" id="searchInput" class="search-input" placeholder="Title, Model, Category သို့မဟုတ် File ID ဖြင့် ရှာရန်..." oninput="handleSearch()">
         </div>
 
-        <div class="video-grid" id="searchResultContainer"></div>
+        <!-- Results Output Container -->
+        <div id="searchResultContainer"></div>
     </main>
 
     <script src="js/app.js"></script>
@@ -61,11 +171,30 @@
             if (sidebar) sidebar.classList.toggle('open');
         }
 
+        // အကောင့်ဝင်ထားခြင်း ရှိမရှိ စစ်ဆေးသည့် Helper function (localStorage သို့မဟုတ် app.js ကစနစ်ကို ညှိသုံးနိုင်သည်)
+        function checkUserLoggedIn() {
+            const user = localStorage.getItem('currentUser') || localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+            return user !== null && user !== 'false' && user !== '';
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('searchResultContainer');
             if (container) container.innerHTML = '';
+            
             if (typeof loadDataFromWorker === 'function') {
                 loadDataFromWorker();
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const modelParam = urlParams.get('model');
+            const categoryParam = urlParams.get('category');
+            
+            if (modelParam) {
+                document.getElementById('searchInput').value = modelParam;
+                setTimeout(handleSearch, 300);
+            } else if (categoryParam) {
+                document.getElementById('searchInput').value = categoryParam;
+                setTimeout(handleSearch, 300);
             }
         });
 
@@ -86,56 +215,72 @@
             const safeCategoryData = (typeof categoryData !== 'undefined' && Array.isArray(categoryData)) ? categoryData : [];
             const safeVideoData = (typeof videoData !== 'undefined' && Array.isArray(videoData)) ? videoData : [];
 
-            if (safeModelData.length === 0 && safeVideoData.length === 0) {
-                container.innerHTML = '<p class="empty-msg" style="color:#e50914; text-align:center; padding:30px; grid-column: 1/-1;">ဒေတာများ ဆွဲနေဆဲ ဖြစ်ပါသည် (သို့) လိုင်းမကောင်းပါ။ ခဏစောင့်ပါ။</p>';
+            if (safeModelData.length === 0 && safeVideoData.length === 0 && safeCategoryData.length === 0) {
+                container.innerHTML = '<p style="color:#e50914; text-align:center; padding:30px;">ဒေတာများ ဆွဲယူနေဆဲဖြစ်ပါသည် (သို့) လိုင်းမကောင်းပါ။ ခဏစောင့်ပေးပါ။</p>';
                 return;
             }
 
-            // ၁။ Model များကို ရှာဖွေခြင်း
+            // အကောင့်ဝင်ထားခြင်း ရှိမရှိ စစ်ဆေးခြင်း
+            const isLoggedIn = checkUserLoggedIn();
+
+            // ၁။ Model ရှာဖွေခြင်း
             const matchedModels = safeModelData.filter(model => {
                 const modelName = (model.name || model.model_name || '').toLowerCase();
                 return modelName.includes(query);
             });
 
-            // ၂။ Category များကို ရှာဖွေခြင်း
+            // ၂။ Category ရှာဖွေခြင်း
             const matchedCategories = safeCategoryData.filter(cat => {
                 const catName = (cat.name || cat.category_name || '').toLowerCase();
                 return catName.includes(query);
             });
 
-            // ၃။ ဗီဒီယိုများကို ရှာဖွေခြင်း (VIP Content မဟုတ်သည်များကို ပုံမှန်ရှာမည်)
-            const publicVideos = safeVideoData.filter(v => v.file_id && String(v.file_id).trim() !== '' && !v.isVip);
-            const matchedVideos = publicVideos.filter(video => {
+            // ၃။ Video ရှာဖွေခြင်း (အကောင့်မဝင်ထားလျှင် VIP/is_vip များကို ဖြတ်ထုတ်မည်၊ ဝင်ထားမှသာ အကုန်ပြမည်)
+            const matchedVideos = safeVideoData.filter(video => {
+                // VIP စစ်ဆေးချက် (is_vip သို့မဟုတ် vip flag ပါလျှင်)
+                const isVipVideo = video.isVip || video.is_vip === true || String(video.is_vip) === 'true';
+                
+                if (!isLoggedIn && isVipVideo) {
+                    return false; // အကောင့်မရှိရင် VIP ကားတွေကို ရှာမတွေ့စေရ
+                }
+
                 const title = (video.title || '').toLowerCase();
                 const modelField = (video.model || '').toLowerCase();
                 const catField = (video.category || '').toLowerCase();
-                const fileId = (video.file_id || '').toLowerCase();
+                const fileId = String(video.file_id || '').toLowerCase();
                 
-                return title.includes(query) || modelField.includes(query) || catField.includes(query) || fileId.toLowerCase().includes(query);
+                return title.includes(query) || modelField.includes(query) || catField.includes(query) || fileId.includes(query);
             });
 
             container.innerHTML = '';
 
             if (matchedModels.length === 0 && matchedCategories.length === 0 && matchedVideos.length === 0) {
-                container.innerHTML = '<p class="empty-msg" style="color:#888; text-align:center; padding:40px; grid-column: 1/-1;">ရှာဖွေမှု ရလဒ် မရှိပါ။</p>';
+                container.innerHTML = '<p style="color:#888; text-align:center; padding:40px;">ရှာဖွေမှု ရလဒ် မရှိပါ။</p>';
                 return;
             }
 
-            // --- Search Models Section ---
+            // --- 1. Model Section (3 Columns Grid) ---
             if (matchedModels.length > 0) {
-                container.innerHTML += `<div style="grid-column: 1/-1; font-size:16px; font-weight:bold; color:#fff; margin-top:10px; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;"><i class="fa-solid fa-user-star"></i> Models</div>`;
+                container.innerHTML += `
+                    <div class="search-section-title">
+                        <i class="fa-solid fa-user-star" style="color:#e50914;"></i> Models (${matchedModels.length})
+                    </div>
+                `;
                 
-                let modelHtml = `<div class="small-grid">`;
+                let modelHtml = `<div class="model-grid-3col">`;
                 matchedModels.forEach(model => {
+                    const name = model.name || model.model_name || 'Model';
                     const displayImg = (model.image && model.image.trim() !== '') ? model.image : 'https://via.placeholder.com/150';
+                    const count = model.count || 0;
+
                     modelHtml += `
-                        <a href="model.html?model=${encodeURIComponent(model.name)}" style="text-decoration:none; display:flex; flex-direction:column; background:var(--card-bg, #1a1a24); border-radius:10px; overflow:hidden; border:1px solid var(--border-color, #282836);">
-                            <div style="position:relative; width:100%; height:135px; background:#000; overflow:hidden;">
-                                <img src="${displayImg}" alt="${model.name}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
-                                <span style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;">${model.count || 0} vids</span>
+                        <a href="model.html?model=${encodeURIComponent(name)}" class="search-card">
+                            <div class="card-thumb-box">
+                                <img src="${displayImg}" alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
+                                <span class="card-badge"><i class="fa-solid fa-video"></i> ${count}</span>
                             </div>
-                            <div style="padding:6px 4px; text-align:center;">
-                                <h3 style="font-size:12px; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${model.name}</h3>
+                            <div class="card-info">
+                                <h3 class="card-title">${name}</h3>
                             </div>
                         </a>
                     `;
@@ -144,21 +289,28 @@
                 container.innerHTML += modelHtml;
             }
 
-            // --- Search Categories Section ---
+            // --- 2. Category Section (3 Columns Grid) ---
             if (matchedCategories.length > 0) {
-                container.innerHTML += `<div style="grid-column: 1/-1; font-size:16px; font-weight:bold; color:#fff; margin-top:20px; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;"><i class="fa-solid fa-hashtag"></i> Categories</div>`;
+                container.innerHTML += `
+                    <div class="search-section-title">
+                        <i class="fa-solid fa-hashtag" style="color:#e50914;"></i> Categories (${matchedCategories.length})
+                    </div>
+                `;
                 
-                let catHtml = `<div class="small-grid">`;
+                let catHtml = `<div class="category-grid-3col">`;
                 matchedCategories.forEach(cat => {
+                    const name = cat.name || cat.category_name || 'Category';
                     const displayImg = (cat.image && cat.image.trim() !== '') ? cat.image : 'https://via.placeholder.com/150';
+                    const count = cat.count || 0;
+
                     catHtml += `
-                        <a href="category.html?category=${encodeURIComponent(cat.name)}" style="text-decoration:none; display:flex; flex-direction:column; background:var(--card-bg, #1a1a24); border-radius:10px; overflow:hidden; border:1px solid var(--border-color, #282836);">
-                            <div style="position:relative; width:100%; height:135px; background:#000; overflow:hidden;">
-                                <img src="${displayImg}" alt="${cat.name}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
-                                <span style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;">${cat.count || 0} vids</span>
+                        <a href="category.html?category=${encodeURIComponent(name)}" class="search-card">
+                            <div class="card-thumb-box">
+                                <img src="${displayImg}" alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
+                                <span class="card-badge"><i class="fa-solid fa-video"></i> ${count}</span>
                             </div>
-                            <div style="padding:8px 4px; text-align:center;">
-                                <h3 style="font-size:12px; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cat.name}</h3>
+                            <div class="card-info">
+                                <h3 class="card-title">${name}</h3>
                             </div>
                         </a>
                     `;
@@ -167,28 +319,45 @@
                 container.innerHTML += catHtml;
             }
 
-            // --- Search Videos Section ---
+            // --- 3. Video Section (2 Columns Grid) ---
             if (matchedVideos.length > 0) {
-                container.innerHTML += `<div style="grid-column: 1/-1; font-size:16px; font-weight:bold; color:#fff; margin-top:20px; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;"><i class="fa-solid fa-play-circle"></i> Videos</div>`;
+                container.innerHTML += `
+                    <div class="search-section-title">
+                        <i class="fa-solid fa-play-circle" style="color:#e50914;"></i> Videos (${matchedVideos.length})
+                    </div>
+                `;
+                
+                let videoHtml = `<div class="video-grid-2col">`;
                 matchedVideos.forEach(video => {
-                    const playerCall = typeof openPlayer === 'function' 
-                        ? `openPlayer('${video.file_id}', '${video.stream_url || ''}')` 
-                        : `window.location.href='player.html?id=${encodeURIComponent(video.file_id)}'`;
+                    const title = video.title || 'Untitled Video';
+                    const fileId = video.file_id || '';
+                    const views = video.views || 0;
+                    const thumb = video.thumbnail || '';
+                    const streamUrl = video.stream_url || '';
 
-                    container.innerHTML += `
-                        <div class="video-card" onclick="${playerCall}" style="cursor:pointer; background:#1a1a24; border-radius:10px; overflow:hidden; border:1px solid #282836; display:flex; flex-direction:column;">
-                            <div class="thumbnail-box" style="position:relative; width:100%; height:150px; background:#000; overflow:hidden;">
-                                <video src="${video.thumbnail || ''}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; pointer-events:none; display:block; position:absolute; top:0; left:0;"></video>
-                                <span class="view-badge" style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.7); color:#fff; font-size:11px; padding:2px 6px; border-radius:4px; z-index:2;">
-                                    <i class="fa-solid fa-eye"></i> ${video.views || 0}
-                                </span>
+                    const isVideoThumb = thumb.endsWith('.mp4') || thumb.endsWith('.webm');
+                    const thumbContent = isVideoThumb
+                        ? `<video src="${thumb}" autoplay loop muted playsinline></video>`
+                        : `<img src="${thumb || 'https://via.placeholder.com/150'}" alt="${title}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">`;
+
+                    const clickHandler = typeof openPlayer === 'function' 
+                        ? `openPlayer('${fileId}', '${streamUrl}')` 
+                        : `window.location.href='player.html?id=${encodeURIComponent(fileId)}'`;
+
+                    videoHtml += `
+                        <div class="search-card" onclick="${clickHandler}" style="cursor:pointer;">
+                            <div class="card-thumb-box" style="height: 140px;">
+                                ${thumbContent}
+                                <span class="card-badge"><i class="fa-solid fa-eye"></i> ${views}</span>
                             </div>
-                            <div class="video-info" style="padding: 8px 10px;">
-                                <h3 style="font-size: 14px; margin: 0; color: #fff; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${video.title || ''}</h3>
+                            <div class="card-info">
+                                <h3 class="card-title">${title}</h3>
                             </div>
                         </div>
                     `;
                 });
+                videoHtml += `</div>`;
+                container.innerHTML += videoHtml;
             }
         }
     </script>
