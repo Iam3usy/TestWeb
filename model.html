@@ -31,9 +31,13 @@
             <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1 id="pageTitle">Models</h1>
         </div>
-        <!-- Model တွေပြမယ့် နေရာ -->
-        <div class="card-grid" id="modelContainer"></div>
-        <!-- မော်ဒယ်လ်ကိုနှိပ်ရင် ဇာတ်ကားတွေပြမယ့် နေရာ -->
+
+        <!-- Model စာရင်းတွေပြမယ့် နေရာ -->
+        <div class="card-grid" id="modelContainer">
+            <p style="color:#888; text-align:center; padding:30px; width:100%; grid-column:1/-1;">Loading models...</p>
+        </div>
+
+        <!-- Model ကိုနှိပ်ရင် ဇာတ်ကားတွေပြမယ့် နေရာ -->
         <div class="video-grid" id="videoContainer" style="display:none;"></div>
     </main>
 
@@ -41,9 +45,8 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // Page စပွင့်လာချိန်မှာ app.js က ဒေတာတွေကို ဆွဲယူပြီးတာနဲ့ 
-        // URL မှာ ?model= ပါမပါစစ်ပြီး မှန်ကန်တဲ့ function ကို ခေါ်ပေးပါမည်
-        document.addEventListener("DOMContentLoaded", async () => {
+        // Page စပွင့်လာတာနဲ့ app.js က ဒေတာတွေ (videoData နဲ့ modelData) ရောက်လာသည်အထိ စောင့်မည်
+        document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const selectedModel = urlParams.get('model');
             const pageTitle = document.getElementById('pageTitle');
@@ -52,48 +55,118 @@
                 pageTitle.innerText = selectedModel;
             }
 
-            // app.js ထဲက loadDataFromWorker ကို စောင့်ရန် သို့မဟုတ် ခေါ်ရန်
-            if (typeof loadDataFromWorker === 'function') {
-                await loadDataFromWorker();
-            }
-
-            // တစ်ခါတလေ ဒေတာဆွဲတာ နှေးတတ်၍ ခဏစောင့်ပြီးမှ ထပ်စစ်ရန်
-            const checkInterval = setInterval(() => {
+            // app.js က ဒေတာဆွဲနေချိန်မှာ modelData ရလာတာနဲ့ ချက်ချင်း render လုပ်ရန်
+            const checkData = setInterval(() => {
                 if (typeof modelData !== 'undefined' && modelData.length > 0) {
-                    clearInterval(checkInterval);
-                    executePageLogic();
+                    clearInterval(checkData);
+                    renderPageDirectly(selectedModel);
+                } else if (typeof videoData !== 'undefined' && videoData.length > 0) {
+                    clearInterval(checkData);
+                    renderPageDirectly(selectedModel);
                 }
             }, 50);
 
+            // 5 စက္ကန့် ကျော်လွန်ရင်လည်း အတင်းစစ်ပြီး ဖော်ပြရန်
             setTimeout(() => {
-                clearInterval(checkInterval);
-                executePageLogic();
-            }, 3000);
+                clearInterval(checkData);
+                renderPageDirectly(selectedModel);
+            }, 5000);
         });
 
-        function executePageLogic() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const selectedModel = urlParams.get('model');
+        function renderPageDirectly(selectedModel) {
             const modelContainer = document.getElementById('modelContainer');
             const videoContainer = document.getElementById('videoContainer');
 
             if (selectedModel) {
-                // မော်ဒယ်လ်ကို နှိပ်ထားလျှင် Model ကတ်ပြားဖျောက်ပြီး ဇာတ်ကားတွေပြမည်
+                // ၁။ Model တစ်ခုကို နှိပ်ထားလျှင် - အဲ့ဒီ Model နာမည်နဲ့တူတဲ့ ဇာတ်ကားများကို ကြီးမားတဲ့ကတ်ပြားတွေနဲ့ ပြမည်
                 if (modelContainer) modelContainer.style.display = 'none';
                 if (videoContainer) videoContainer.style.display = 'flex';
+                
                 if (typeof renderContent === 'function') {
                     renderContent();
+                } else {
+                    renderVideosForModel(selectedModel);
                 }
             } else {
-                // ပုံမှန် Model Hub ဝင်ချိန်
+                // ၂။ ပုံမှန် Model Hub ဝင်ချိန် - Sheet ထဲက model_name နဲ့ model_image များကို A to Z ဖြင့် ကတ်ပြားများပြမည်
                 if (videoContainer) videoContainer.style.display = 'none';
                 if (modelContainer) {
                     modelContainer.style.display = 'grid';
                     if (typeof renderModelsDirect === 'function') {
                         renderModelsDirect();
+                    } else {
+                        renderModelsFallback();
                     }
                 }
             }
+        }
+
+        // မော်ဒယ်လ် ဇာတ်ကားများပြရန် Fallback Function
+        function renderVideosForModel(selectedModel) {
+            const container = document.getElementById('videoContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const allVideos = typeof videoData !== 'undefined' ? videoData : [];
+            const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
+
+            const matchedVideos = allVideos.filter(v => {
+                const mField = String(v.model || v.model_name || '').trim().toLowerCase();
+                return mField.includes(decodedModel);
+            });
+
+            if (matchedVideos.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#a4b0be; width:100%; padding:30px;">"${selectedModel}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
+                return;
+            }
+
+            matchedVideos.forEach(v => {
+                container.innerHTML += `
+                    <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
+                        <div class="thumbnail-box">
+                            <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
+                            <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views || 0}</span>
+                        </div>
+                        <div class="video-info">
+                            <h3>${v.title}</h3>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // မော်ဒယ်လ် ကတ်ပြားများ A to Z စီ၍ပြရန် Fallback Function
+        function renderModelsFallback() {
+            const container = document.getElementById('modelContainer');
+            if (!container) return;
+            
+            container.style.cssText = "display: grid !important; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important; gap: 10px !important; padding: 15px !important;";
+            container.innerHTML = '';
+
+            const models = typeof modelData !== 'undefined' ? modelData : [];
+
+            if (models.length === 0) {
+                container.innerHTML = '<p style="color:#888; text-align:center; padding:40px; width:100%; grid-column:1/-1;">Model ဒေတာ မရှိသေးပါ။</p>';
+                return;
+            }
+
+            // A to Z စီရန်
+            const sortedModels = [...models].sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+
+            sortedModels.forEach(model => {
+                const displayImg = (model.image && model.image !== '') ? model.image : 'https://via.placeholder.com/150';
+                container.innerHTML += `
+                    <a href="model.html?model=${encodeURIComponent(model.name)}" class="video-card" style="text-decoration:none !important; display:flex !important; flex-direction:column !important; background:var(--card-bg, #141414) !important; border-radius:8px !important; overflow:hidden !important; border:1px solid var(--border-color, #262626) !important;">
+                        <div class="thumbnail-box" style="position:relative !important; width:100% !important; height:130px !important; background:#000 !important; overflow:hidden !important;">
+                            <img src="${displayImg}" alt="${model.name}" style="width:100% !important; height:100% !important; object-fit:cover !important; display:block !important;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
+                            <span class="view-badge" style="position:absolute !important; bottom:4px !important; right:4px !important; background:rgba(0,0,0,0.7) !important; color:#fff !important; font-size:10px !important; padding:2px 5px !important; border-radius:4px !important;">${model.count || 0}</span>
+                        </div>
+                        <div class="video-info" style="padding:8px 5px !important; text-align:center !important; overflow:hidden !important;">
+                            <h3 style="font-size:11px !important; margin:0 !important; color:#fff !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; width:100% !important;">${model.name}</h3>
+                        </div>
+                    </a>
+                `;
+            });
         }
     </script>
 </body>
