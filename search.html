@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Hub - Search</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- Side Menu -->
+    <nav class="sidebar" id="sidebar">
+        <div class="brand">
+            <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
+            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
+            <li class="menu-item"><a href="index.html?sort=popular"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li class="menu-item active"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li class="menu-item"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+            <li class="menu-item"><a href="javascript:void(0)" onclick="checkVipAccess()"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="mainContent">
+        <div class="header">
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <h1>Search</h1>
+        </div>
+
+        <!-- Search Input Section -->
+        <div style="padding: 15px; max-width: 800px; margin: 0 auto; width: 100%;">
+            <div style="display: flex; gap: 10px; background: var(--card-bg, #141414); padding: 8px 12px; border: 1px solid var(--border-color, #262626); border-radius: 8px;">
+                <input type="text" id="searchInput" placeholder="ဇာတ်ကားအမည်၊ မော်ဒယ် သို့မဟုတ် ကတ္တီပနာမည် ရှာရန်..." style="flex: 1; background: transparent; border: none; color: #fff; font-size: 14px; outline: none;" oninput="handleSearch()">
+                <button onclick="handleSearch()" style="background: var(--primary-color, #e91e63); border: none; color: #fff; padding: 8px 15px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+        </div>
+
+        <!-- Search Results Container -->
+        <div id="searchContainer" style="max-width: 800px; margin: 0 auto; width: 100%; padding: 0 15px 30px 15px;">
+            <p style="text-align: center; color: #888; padding: 30px;">ဇာတ်ကားများ ရှာဖွေရန် စာလုံးရိုက်ထည့်ပါ...</p>
+        </div>
+    </main>
+
+    <!-- Video.js Player Script -->
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbw6lq48q4joTcZWkOblA-gxy-UubGVjIHNaq82_epx6IwbVK5kC_qccJ7QQscismt0sWQ/exec";
+        const STREAM_BASE_URL = "https://myhubapp.dathalay1.workers.dev/stream?file_id=";
+        let allVideosData = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
+                    allVideosData = data.map(item => ({
+                        title: item.title ? String(item.title).trim() : '',
+                        model_name: item.model_name ? String(item.model_name).trim() : '',
+                        model: item.model ? String(item.model).trim() : '',
+                        model_image: item.model_image ? String(item.model_image).trim() : '',
+                        category_name: item.category_name ? String(item.category_name).trim() : '',
+                        category: item.category ? String(item.category).trim() : '',
+                        category_image: item.category_image ? String(item.category_image).trim() : '',
+                        thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
+                        file_id: item.file_id ? String(item.file_id).trim() : '',
+                        stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
+                        views: item.views || 0
+                    }));
+                }
+            } catch (err) {
+                console.error("Fetch Error:", err);
+            }
+        });
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const container = document.getElementById('searchContainer');
+            if (!container) return;
+
+            if (query === '') {
+                container.innerHTML = `<p style="text-align: center; color: #888; padding: 30px;">ဇာတ်ကားများ ရှာဖွေရန် စာလုံးရိုက်ထည့်ပါ...</p>`;
+                return;
+            }
+
+            // 1. Models စုဆောင်းခြင်း (Count ပါ တွက်ချက်ရန်)
+            const modelMap = new Map();
+            allVideosData.forEach(v => {
+                if (v.model_name) {
+                    v.model_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+                        let lower = name.toLowerCase();
+                        if (!modelMap.has(lower)) {
+                            modelMap.set(lower, { name, image: v.model_image || 'https://via.placeholder.com/150', count: 0 });
+                        }
+                    });
+                }
+            });
+            allVideosData.forEach(v => {
+                if (v.model) {
+                    let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
+                    modelMap.forEach((mObj, lowerKey) => {
+                        if (vModels.includes(lowerKey)) mObj.count++;
+                    });
+                }
+            });
+
+            // 2. Categories စုဆောင်းခြင်း (Count ပါ တွက်ချက်ရန်)
+            const categoryMap = new Map();
+            allVideosData.forEach(v => {
+                if (v.category_name) {
+                    v.category_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+                        let lower = name.toLowerCase();
+                        if (!categoryMap.has(lower)) {
+                            categoryMap.set(lower, { name, image: v.category_image || 'https://via.placeholder.com/150', count: 0 });
+                        }
+                    });
+                }
+            });
+            allVideosData.forEach(v => {
+                if (v.category) {
+                    let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
+                    categoryMap.forEach((cObj, lowerKey) => {
+                        if (vCategories.includes(lowerKey)) cObj.count++;
+                    });
+                }
+            });
+
+            // 3. Search Query နှင့် ကိုက်ညီသော Model များစစ်ထုတ်ရန်
+            const matchedModels = Array.from(modelMap.values()).filter(m => m.name.toLowerCase().includes(query));
+
+            // 4. Search Query နှင့် ကိုက်ညီသော Category များစစ်ထုတ်ရန်
+            const matchedCategories = Array.from(categoryMap.values()).filter(c => c.name.toLowerCase().includes(query));
+
+            // 5. Search Query နှင့် ကိုက်ညီသော Video များစစ်ထုတ်ရန်
+            const matchedVideos = allVideosData.filter(v => {
+                return v.title.toLowerCase().includes(query) ||
+                       v.model.toLowerCase().includes(query) ||
+                       v.model_name.toLowerCase().includes(query) ||
+                       v.category.toLowerCase().includes(query) ||
+                       v.category_name.toLowerCase().includes(query);
+            });
+
+            if (matchedModels.length === 0 && matchedCategories.length === 0 && matchedVideos.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: #a4b0be; padding: 30px;">"${query}" နှင့် ကိုက်ညီသော ရလဒ် မရှိပါ။</p>`;
+                return;
+            }
+
+            let htmlContent = '';
+
+            // Model Section (3 columns grid)
+            if (matchedModels.length > 0) {
+                htmlContent += `
+                    <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Model</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                `;
+                matchedModels.forEach(m => {
+                    htmlContent += `
+                        <a href="model.html?model=${encodeURIComponent(m.name)}" style="text-decoration:none; display:flex; flex-direction:column; background:var(--card-bg, #141414); border-radius:8px; overflow:hidden; border:1px solid var(--border-color, #262626);">
+                            <div style="position:relative; width:100%; height:130px; background:#000; overflow:hidden;">
+                                <img src="${m.image}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
+                                <span style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;">${m.count}</span>
+                            </div>
+                            <div style="padding:8px 5px; text-align:center; overflow:hidden;">
+                                <h4 style="font-size:11px; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${m.name}</h4>
+                            </div>
+                        </a>
+                    `;
+                });
+                htmlContent += `</div>`;
+            }
+
+            // Category Section (3 columns grid)
+            if (matchedCategories.length > 0) {
+                htmlContent += `
+                    <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Category</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                `;
+                matchedCategories.forEach(c => {
+                    htmlContent += `
+                        <a href="category.html?category=${encodeURIComponent(c.name)}" style="text-decoration:none; display:flex; flex-direction:column; background:var(--card-bg, #141414); border-radius:8px; overflow:hidden; border:1px solid var(--border-color, #262626);">
+                            <div style="position:relative; width:100%; height:130px; background:#000; overflow:hidden;">
+                                <img src="${c.image}" alt="${c.name}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
+                                <span style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;">${c.count}</span>
+                            </div>
+                            <div style="padding:8px 5px; text-align:center; overflow:hidden;">
+                                <h4 style="font-size:11px; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${c.name}</h4>
+                            </div>
+                        </a>
+                    `;
+                });
+                htmlContent += `</div>`;
+            }
+
+            // Video Section (2 columns grid)
+            if (matchedVideos.length > 0) {
+                htmlContent += `
+                    <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Video</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                `;
+                matchedVideos.forEach(v => {
+                    const thumbContent = v.thumbnail 
+                        ? `<video src="${v.thumbnail}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; display:block;"></video>` 
+                        : `<div style="width:100%; height:100%; background:#000;"></div>`;
+
+                    htmlContent += `
+                        <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')" style="background:var(--card-bg, #141414); border-radius:8px; overflow:hidden; border:1px solid var(--border-color, #262626); cursor:pointer; display:flex; flex-direction:column;">
+                            <div class="thumbnail-box" style="position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow:hidden;">
+                                ${thumbContent}
+                                <span class="view-badge" style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:var(--secondary-color, #ff80bf); font-size:11px; padding:2px 6px; border-radius:4px; display:flex; align-items:center; gap:4px;">
+                                    <i class="fa-solid fa-eye" style="font-size:10px;"></i> ${v.views}
+                                </span>
+                            </div>
+                            <div class="video-info" style="padding:10px 8px;">
+                                <h3 style="font-size:12px; font-weight:600; color:var(--text-color, #fff); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</h3>
+                            </div>
+                        </div>
+                    `;
+                });
+                htmlContent += `</div>`;
+            }
+
+            container.innerHTML = htmlContent;
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.toggle('open');
+        }
+
+        function openPlayer(fileId, streamUrl) {
+            if (!streamUrl) return;
+            let modal = document.getElementById('videoModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'videoModal';
+                modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center;';
+                document.body.appendChild(modal);
+            }
+            modal.innerHTML = `
+                <div style="position:relative; width:95%; max-width:850px; background:#111; border-radius:8px; overflow:hidden;">
+                    <button onclick="closePlayer()" style="position:absolute; top:10px; right:15px; background:rgba(0,0,0,0.6); border:none; color:white; font-size:24px; cursor:pointer; z-index:10000; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+                    <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" style="width:100%; aspect-ratio:16/9;">
+                        <source src="${streamUrl}" type="application/x-mpegURL">
+                    </video>
+                </div>
+            `;
+            modal.style.display = 'flex';
+            if (window.videojs) {
+                videojs('my-video', { autoplay: true, controls: true, fluid: true, html5: { hls: { overrideNative: true } } });
+            }
+        }
+
+        function closePlayer() {
+            const modal = document.getElementById('videoModal');
+            if (modal) {
+                if (window.videojs && videojs.getPlayers()['my-video']) videojs.getPlayers()['my-video'].dispose();
+                modal.style.display = 'none';
+                modal.innerHTML = '';
+            }
+        }
+    </script>
+</body>
+</html>
