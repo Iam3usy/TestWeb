@@ -121,25 +121,29 @@ body { background-color: var(--bg-color); color: var(--text-color); min-height: 
     background: var(--card-bg, #1a1a1a);
     width: 100%;
 }
-/* --- Search Page Extra Styles --- */
+/* --- Search Page Styles အမှန် --- */
 .search-bar-container {
     margin-bottom: 25px;
+    width: 100%;
 }
 
 .search-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
 .search-input-wrapper i {
     position: absolute;
     left: 15px;
     color: #aaa;
+    z-index: 2;
 }
 
 .search-input-wrapper input {
     width: 100%;
+    box-sizing: border-box; /* နေရာလွဲချော်မှုမရှိစေရန် */
     padding: 12px 15px 12px 45px;
     background: #1e1e1e;
     border: 1px solid #333;
@@ -165,3 +169,4 @@ body { background-color: var(--bg-color); color: var(--text-color); min-height: 
     align-items: center;
     gap: 10px;
 }
+
