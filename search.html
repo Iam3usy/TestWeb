@@ -54,9 +54,8 @@
         let allVideosData = [];
 
         document.addEventListener("DOMContentLoaded", async () => {
-            // VIP / Login Access စစ်ဆေးခြင်း (LocalStorage သို့မဟုတ် Session ပေါ်မူတည်၍)
             if (!checkVipAccess(true)) {
-                return; // Access မရှိလျှင် ဆက်မလုပ်ပါ
+                return;
             }
 
             try {
@@ -85,7 +84,6 @@
             }
         });
 
-        // VIP / Login Access စစ်ဆေးပေးမယ့် Function
         function checkVipAccess(silent = false) {
             const isVip = localStorage.getItem('isVip') === 'true' || sessionStorage.getItem('isVip') === 'true';
             
@@ -159,15 +157,13 @@
                 }
             });
 
-            // 3. စစ်ထုတ်ခြင်း
+            // 3. စစ်ထုတ်ခြင်း (Model, Category, Video များကို သီးသန့်စီ တိကျစွာ စစ်ထုတ်ခြင်း)
             const matchedModels = Array.from(modelMap.values()).filter(m => m.name.toLowerCase().includes(query));
             const matchedCategories = Array.from(categoryMap.values()).filter(c => c.name.toLowerCase().includes(query));
+            
+            // ဗီဒီယိုများကို ရှာဖွေရာတွင် ဇာတ်ကားခေါင်းစဉ် (title) ထဲတွင်သာ query ပါဝင်မှုကို တိကျစွာစစ်ဆေးခြင်း
             const matchedVideos = allVideosData.filter(v => {
-                return v.title.toLowerCase().includes(query) ||
-                       v.model.toLowerCase().includes(query) ||
-                       v.model_name.toLowerCase().includes(query) ||
-                       v.category.toLowerCase().includes(query) ||
-                       v.category_name.toLowerCase().includes(query);
+                return v.title.toLowerCase().includes(query);
             });
 
             if (matchedModels.length === 0 && matchedCategories.length === 0 && matchedVideos.length === 0) {
