@@ -121,3 +121,47 @@ body { background-color: var(--bg-color); color: var(--text-color); min-height: 
     background: var(--card-bg, #1a1a1a);
     width: 100%;
 }
+/* --- Search Page Extra Styles --- */
+.search-bar-container {
+    margin-bottom: 25px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-wrapper i {
+    position: absolute;
+    left: 15px;
+    color: #aaa;
+}
+
+.search-input-wrapper input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.search-input-wrapper input:focus {
+    border-color: #e50914;
+}
+
+.search-section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    margin: 25px 0 15px 0;
+    border-bottom: 2px solid #333;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
