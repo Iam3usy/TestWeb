@@ -32,12 +32,12 @@
             <h1 id="pageTitle">Models</h1>
         </div>
 
-        <!-- Model စာရင်းတွေပြမယ့် နေရာ -->
+        <!-- Model စာရင်း A to Z ပြမယ့် နေရာ -->
         <div class="card-grid" id="modelContainer">
             <p style="color:#888; text-align:center; padding:30px; width:100%; grid-column:1/-1;">Loading models...</p>
         </div>
 
-        <!-- Model ကိုနှိပ်ရင် ဇာတ်ကားတွေပြမယ့် နေရာ -->
+        <!-- Model နှိပ်ရင် ဇာတ်ကားတွေပြမယ့် နေရာ -->
         <div class="video-grid" id="videoContainer" style="display:none;"></div>
     </main>
 
@@ -45,7 +45,6 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // Page စပွင့်လာတာနဲ့ app.js က ဒေတာတွေ (videoData နဲ့ modelData) ရောက်လာသည်အထိ စောင့်မည်
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const selectedModel = urlParams.get('model');
@@ -55,88 +54,45 @@
                 pageTitle.innerText = selectedModel;
             }
 
-            // app.js က ဒေတာဆွဲနေချိန်မှာ modelData ရလာတာနဲ့ ချက်ချင်း render လုပ်ရန်
+            // app.js မှ ဒေတာရောက်လာသည်အထိ စောင့်ဆိုင်းခြင်း
             const checkData = setInterval(() => {
                 if (typeof modelData !== 'undefined' && modelData.length > 0) {
                     clearInterval(checkData);
-                    renderPageDirectly(selectedModel);
+                    renderPage(selectedModel);
                 } else if (typeof videoData !== 'undefined' && videoData.length > 0) {
                     clearInterval(checkData);
-                    renderPageDirectly(selectedModel);
+                    renderPage(selectedModel);
                 }
             }, 50);
 
-            // 5 စက္ကန့် ကျော်လွန်ရင်လည်း အတင်းစစ်ပြီး ဖော်ပြရန်
             setTimeout(() => {
                 clearInterval(checkData);
-                renderPageDirectly(selectedModel);
+                renderPage(selectedModel);
             }, 5000);
         });
 
-        function renderPageDirectly(selectedModel) {
+        function renderPage(selectedModel) {
             const modelContainer = document.getElementById('modelContainer');
             const videoContainer = document.getElementById('videoContainer');
 
             if (selectedModel) {
-                // ၁။ Model တစ်ခုကို နှိပ်ထားလျှင် - အဲ့ဒီ Model နာမည်နဲ့တူတဲ့ ဇာတ်ကားများကို ကြီးမားတဲ့ကတ်ပြားတွေနဲ့ ပြမည်
+                // ၁။ Model နှိပ်ထားလျှင် model row ထဲက နာမည်တူ ဇာတ်ကားများကို 2/3 columns ဖြင့်ပြမည်
                 if (modelContainer) modelContainer.style.display = 'none';
                 if (videoContainer) videoContainer.style.display = 'flex';
                 
-                if (typeof renderContent === 'function') {
-                    renderContent();
-                } else {
-                    renderVideosForModel(selectedModel);
-                }
+                renderVideosForModel(selectedModel);
             } else {
-                // ၂။ ပုံမှန် Model Hub ဝင်ချိန် - Sheet ထဲက model_name နဲ့ model_image များကို A to Z ဖြင့် ကတ်ပြားများပြမည်
+                // ၂။ ပုံမှန် Model Hub ဝင်လျှင် model_name နဲ့ model_image ကို A to Z ဖြင့်ပြမည်
                 if (videoContainer) videoContainer.style.display = 'none';
                 if (modelContainer) {
                     modelContainer.style.display = 'grid';
-                    if (typeof renderModelsDirect === 'function') {
-                        renderModelsDirect();
-                    } else {
-                        renderModelsFallback();
-                    }
+                    renderModelsAtoZ();
                 }
             }
         }
 
-        // မော်ဒယ်လ် ဇာတ်ကားများပြရန် Fallback Function
-        function renderVideosForModel(selectedModel) {
-            const container = document.getElementById('videoContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const allVideos = typeof videoData !== 'undefined' ? videoData : [];
-            const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
-
-            const matchedVideos = allVideos.filter(v => {
-                const mField = String(v.model || v.model_name || '').trim().toLowerCase();
-                return mField.includes(decodedModel);
-            });
-
-            if (matchedVideos.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:#a4b0be; width:100%; padding:30px;">"${selectedModel}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
-                return;
-            }
-
-            matchedVideos.forEach(v => {
-                container.innerHTML += `
-                    <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
-                        <div class="thumbnail-box">
-                            <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
-                            <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views || 0}</span>
-                        </div>
-                        <div class="video-info">
-                            <h3>${v.title}</h3>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // မော်ဒယ်လ် ကတ်ပြားများ A to Z စီ၍ပြရန် Fallback Function
-        function renderModelsFallback() {
+        // model_name နှင့် model_image များကို A to Z စီ၍ ကတ်ပြားထုတ်ရန်
+        function renderModelsAtoZ() {
             const container = document.getElementById('modelContainer');
             if (!container) return;
             
@@ -150,7 +106,7 @@
                 return;
             }
 
-            // A to Z စီရန်
+            // A to Z စီခြင်း
             const sortedModels = [...models].sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
 
             sortedModels.forEach(model => {
@@ -165,6 +121,42 @@
                             <h3 style="font-size:11px !important; margin:0 !important; color:#fff !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; width:100% !important;">${model.name}</h3>
                         </div>
                     </a>
+                `;
+            });
+        }
+
+        // နှိပ်လိုက်သော Model နဲ့ ကိုက်ညီသော ဇာတ်ကားများကို model row ထဲမှ ရှာဖွေပြသရန်
+        function renderVideosForModel(selectedModel) {
+            const container = document.getElementById('videoContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const allVideos = typeof videoData !== 'undefined' ? videoData : [];
+            const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
+
+            const matchedVideos = allVideos.filter(v => {
+                const mField = String(v.model || '').trim().toLowerCase();
+                const mName = String(v.model_name || '').trim().toLowerCase();
+                return mField.includes(decodedModel) || mName.includes(decodedModel);
+            });
+
+            if (matchedVideos.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#a4b0be; width:100%; padding:30px;">"${selectedModel}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            matchedVideos.forEach(v => {
+                container.innerHTML += `
+                    <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
+                        <div class="thumbnail-box">
+                            <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
+                            <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views || 0}</span>
+                        </div>
+                        <div class="video-info">
+                            <h3>${v.title}</h3>
+                        </div>
+                    </div>
                 `;
             });
         }
