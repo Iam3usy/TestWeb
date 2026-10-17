@@ -54,31 +54,60 @@
         let allVideosData = [];
 
         document.addEventListener("DOMContentLoaded", async () => {
+            // VIP / Login Access စစ်ဆေးခြင်း (LocalStorage သို့မဟုတ် Session ပေါ်မူတည်၍)
+            if (!checkVipAccess(true)) {
+                return; // Access မရှိလျှင် ဆက်မလုပ်ပါ
+            }
+
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
 
                 if (Array.isArray(data)) {
-                    allVideosData = data.map(item => ({
-                        title: item.title ? String(item.title).trim() : '',
-                        model_name: item.model_name ? String(item.model_name).trim() : '',
-                        model: item.model ? String(item.model).trim() : '',
-                        model_image: item.model_image ? String(item.model_image).trim() : '',
-                        category_name: item.category_name ? String(item.category_name).trim() : '',
-                        category: item.category ? String(item.category).trim() : '',
-                        category_image: item.category_image ? String(item.category_image).trim() : '',
-                        thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
-                        file_id: item.file_id ? String(item.file_id).trim() : '',
-                        stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
-                        views: item.views || 0
-                    }));
+                    allVideosData = data
+                        .map(item => ({
+                            title: item.title ? String(item.title).trim() : '',
+                            model_name: item.model_name ? String(item.model_name).trim() : '',
+                            model: item.model ? String(item.model).trim() : '',
+                            model_image: item.model_image ? String(item.model_image).trim() : '',
+                            category_name: item.category_name ? String(item.category_name).trim() : '',
+                            category: item.category ? String(item.category).trim() : '',
+                            category_image: item.category_image ? String(item.category_image).trim() : '',
+                            thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
+                            file_id: item.file_id ? String(item.file_id).trim() : '',
+                            stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
+                            views: item.views || 0
+                        }))
+                        .filter(item => item.title !== '');
                 }
             } catch (err) {
                 console.error("Fetch Error:", err);
             }
         });
 
+        // VIP / Login Access စစ်ဆေးပေးမယ့် Function
+        function checkVipAccess(silent = false) {
+            const isVip = localStorage.getItem('isVip') === 'true' || sessionStorage.getItem('isVip') === 'true';
+            
+            if (!isVip) {
+                if (!silent) {
+                    alert("ဤကဏ္ဍကို အသုံးပြုရန် VIP Access (သို့) Login ဝင်ရန် လိုအပ်ပါသည်။");
+                }
+                document.getElementById('searchContainer').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ff4d4d;">
+                        <i class="fa-solid fa-crown" style="font-size: 40px; margin-bottom: 15px;"></i>
+                        <p style="font-size: 15px; margin-bottom: 15px;">ရှာဖွေရန် VIP Access လိုအပ်ပါသည်။</p>
+                        <a href="login.html" style="background: var(--primary-color, #e91e63); color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold;">Login / VIP ဝင်ရန်</a>
+                    </div>
+                `;
+                return false;
+            }
+            return true;
+        }
+
         function handleSearch() {
+            if (!checkVipAccess()) return;
+
             const query = document.getElementById('searchInput').value.trim().toLowerCase();
             const container = document.getElementById('searchContainer');
             if (!container) return;
@@ -88,7 +117,7 @@
                 return;
             }
 
-            // 1. Models စုဆောင်းခြင်း (Count ပါ တွက်ချက်ရန်)
+            // 1. Models စုဆောင်းခြင်း
             const modelMap = new Map();
             allVideosData.forEach(v => {
                 if (v.model_name) {
@@ -109,7 +138,7 @@
                 }
             });
 
-            // 2. Categories စုဆောင်းခြင်း (Count ပါ တွက်ချက်ရန်)
+            // 2. Categories စုဆောင်းခြင်း
             const categoryMap = new Map();
             allVideosData.forEach(v => {
                 if (v.category_name) {
@@ -130,13 +159,9 @@
                 }
             });
 
-            // 3. Search Query နှင့် ကိုက်ညီသော Model များစစ်ထုတ်ရန်
+            // 3. စစ်ထုတ်ခြင်း
             const matchedModels = Array.from(modelMap.values()).filter(m => m.name.toLowerCase().includes(query));
-
-            // 4. Search Query နှင့် ကိုက်ညီသော Category များစစ်ထုတ်ရန်
             const matchedCategories = Array.from(categoryMap.values()).filter(c => c.name.toLowerCase().includes(query));
-
-            // 5. Search Query နှင့် ကိုက်ညီသော Video များစစ်ထုတ်ရန်
             const matchedVideos = allVideosData.filter(v => {
                 return v.title.toLowerCase().includes(query) ||
                        v.model.toLowerCase().includes(query) ||
@@ -152,7 +177,7 @@
 
             let htmlContent = '';
 
-            // Model Section (3 columns grid)
+            // Model Section (3 columns)
             if (matchedModels.length > 0) {
                 htmlContent += `
                     <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Model</h3>
@@ -174,7 +199,7 @@
                 htmlContent += `</div>`;
             }
 
-            // Category Section (3 columns grid)
+            // Category Section (3 columns)
             if (matchedCategories.length > 0) {
                 htmlContent += `
                     <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Category</h3>
@@ -196,7 +221,7 @@
                 htmlContent += `</div>`;
             }
 
-            // Video Section (2 columns grid)
+            // Video Section (2 columns)
             if (matchedVideos.length > 0) {
                 htmlContent += `
                     <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Video</h3>
@@ -233,6 +258,7 @@
         }
 
         function openPlayer(fileId, streamUrl) {
+            if (!checkVipAccess()) return;
             if (!streamUrl) return;
             let modal = document.getElementById('videoModal');
             if (!modal) {
