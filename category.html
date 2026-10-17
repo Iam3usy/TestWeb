@@ -98,28 +98,40 @@
 
             const categoryMap = new Map();
 
-            // ပထမအဆင့် - category_name များကို စုဆောင်း၍ A to Z စာရင်း တည်ဆောက်ခြင်း
-            videos.forEach(v => {
-                if (v.category_name) {
-                    let names = v.category_name.split(',').map(n => n.trim()).filter(n => n !== '');
-                    names.forEach(name => {
-                        let lower = name.toLowerCase();
-                        if (!categoryMap.has(lower)) {
-                            categoryMap.set(lower, {
-                                name: name,
-                                image: v.category_image || 'https://via.placeholder.com/150',
-                                count: 0
-                            });
-                        } else {
-                            let c = categoryMap.get(lower);
-                            if ((!c.image || c.image.includes('placeholder')) && v.category_image) {
-                                c.image = v.category_image;
-                            }
-                        }
-                    });
+// ၁။ Category စာရင်းကို သီးသန့် စုစည်းခြင်း (Count ကို 0 က စမည်)
+videos.forEach(v => {
+    if (v.category_name) {
+        let names = v.category_name.split(',').map(n => n.trim()).filter(n => n !== '');
+        names.forEach(name => {
+            let lowerKey = name.toLowerCase().trim();
+            
+            if (!categoryMap.has(lowerKey)) {
+                categoryMap.set(lowerKey, {
+                    name: name,
+                    image: v.category_image || 'https://via.placeholder.com/150',
+                    count: 0
+                });
+            } else {
+                let c = categoryMap.get(lowerKey);
+                if ((!c.image || c.image.includes('placeholder')) && v.category_image) {
+                    c.image = v.category_image;
                 }
-            });
+            }
+        });
+    }
+});
 
+// ၂။ ဗီဒီယိုများထဲတွင် ဤ Category ပါဝင်သည့် အကြိမ်အရေအတွက်ကို အမှန်တကလိုက် ရေတွက်ခြင်း
+videos.forEach(v => {
+    if (v.category) {
+        let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
+        categoryMap.forEach((cObj, lowerKey) => {
+            if (vCategories.includes(lowerKey)) {
+                cObj.count++;
+            }
+        });
+    }
+});
             // ဒုတိယအဆင့် - 'category' ကော်လံထဲတွင် ပါဝင်မှုအပေါ်မူတည်၍ Count အမှန် ရေတွက်ခြင်း
             videos.forEach(v => {
                 if (v.category) {
