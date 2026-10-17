@@ -34,7 +34,7 @@
             <h1 id="pageTitle">Models</h1>
         </div>
 
-        <!-- Container (Model List ချိန် model-grid, Video List ချိန် video-grid သုံးမည်) -->
+        <!-- Container (Model list ချိန် model-grid, Video list ချိန် video-grid သုံးမည်) -->
         <div id="videoContainer" class="model-grid">
             <div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Loading...</div>
         </div>
@@ -45,10 +45,19 @@
     <script src="js/app.js"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            // app.js မှ loadDataFromWorker ဒေတာဆွဲယူပြီးချိန်တွင် render လုပ်ရန်
+            // app.js ကနေ ဒေတာဆွဲယူပြီးတာနဲ့ အလုပ်လုပ်စေရန်
+            const checkInterval = setInterval(() => {
+                if (typeof videoData !== 'undefined' && videoData.length > 0) {
+                    clearInterval(checkInterval);
+                    renderModelPageContent();
+                }
+            }, 100);
+
+            // Timeout 3 စက္ကန့်အတွင်း ဒေတာမရောက်လာရင်လည်း တန်းပြရန်
             setTimeout(() => {
+                clearInterval(checkInterval);
                 renderModelPageContent();
-            }, 500);
+            }, 3000);
         });
 
         function renderModelPageContent() {
@@ -60,7 +69,6 @@
             const selectedModel = urlParams.get('model');
             const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-            // VIP ဗီဒီယိုများကို အကောင့်မဝင်ထားလျှင် ဖယ်ထုတ်မည်
             const availableVideos = (typeof videoData !== 'undefined' ? videoData : []).filter(v => {
                 if (!isLoggedIn && v.isVip) return false;
                 return true;
@@ -76,7 +84,7 @@
                     return mField.includes(decodedModel.toLowerCase());
                 });
 
-                container.className = 'video-grid'; // Index ကဲ့သို့ Grid Class သုံးမည်
+                container.className = 'video-grid'; // Index ကဲ့သို့ 2 columns grid သုံးမည်
 
                 if (matchedVideos.length === 0) {
                     container.innerHTML = `<p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">"${decodedModel}" နှင့် ပတ်သက်သော ဗီဒီယို မရှိသေးပါ။</p>`;
@@ -117,7 +125,7 @@
                     a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
                 );
 
-                container.className = 'model-grid'; // Model Grid Class သုံးမည်
+                container.className = 'model-grid'; // Model Grid သုံးမည်
 
                 if (modelsList.length === 0) {
                     container.innerHTML = '<p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">မော်ဒယ်လ် ဒေတာ မရှိသေးပါ။</p>';
@@ -133,7 +141,7 @@
                         }
                     });
 
-                    // Model Thumbnail အတွက် မူလ logic အတိုင်း ထည့်သွင်းခြင်း
+                    // Model ပုံအတွက် Thumbnail လိုပဲ ဗီဒီယို (သို့) ပုံ အသုံးပြုရန်
                     const imgTag = m.image 
                         ? `<img src="${m.image}" alt="${m.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>No Image</div>'">`
                         : `<div class="model-placeholder">No Image</div>`;
