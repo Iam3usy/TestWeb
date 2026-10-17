@@ -30,10 +30,10 @@
     <main class="main-content">
         <div class="header">
             <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
-            <h1>Models</h1>
+            <h1 id="pageTitle">Models</h1>
         </div>
 
-        <!-- Model List Container -->
+        <!-- Model List / Videos Container -->
         <div id="modelContainer" class="model-grid">
             <div class="status-msg">Loading...</div>
         </div>
@@ -42,93 +42,164 @@
     <script src="js/app.js"></script>
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbw6lq48q4joTcZWkOblA-gxy-UubGVjIHNaq82_epx6IwbVK5kC_qccJ7QQscismt0sWQ/exec";
+        let allSheetData = [];
 
-        document.addEventListener("DOMContentLoaded", () => {
-            fetchModels();
+        function checkUserLoggedIn() {
+            const user = localStorage.getItem('currentUser') || localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+            return user !== null && user !== 'false' && user !== '';
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await fetchAllData();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedModel = urlParams.get('model');
+            const titleElement = document.getElementById('pageTitle');
+
+            if (selectedModel) {
+                const decodedModel = decodeURIComponent(selectedModel);
+                if (titleElement) titleElement.innerText = decodedModel;
+                renderModelVideos(decodedModel);
+            } else {
+                if (titleElement) titleElement.innerText = "Models Hub";
+                renderModelsList();
+            }
         });
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
         }
 
-        async function fetchModels() {
-            const container = document.getElementById('modelContainer');
+        async function fetchAllData() {
             try {
                 const response = await fetch(`${API_URL}?action=getAllData`);
                 const data = await response.json();
-
-                const rows = Array.isArray(data) ? data : (data.videos || data.data || []);
-
-                if (rows.length > 0) {
-                    container.innerHTML = '';
-                    
-                    const modelMap = {};
-
-                    rows.forEach(row => {
-                        const mName = (row.model_name || '').trim();
-                        const mImg = (row.model_image || '').trim();
-
-                        if (mName && !modelMap[mName]) {
-                            modelMap[mName] = {
-                                name: mName,
-                                image: mImg,
-                                count: 0
-                            };
-                        }
-                    });
-
-                    // မော်ဒယ်နာမည်များကို A to Z အစဉ်လိုက် (Alphabetical Order) စီခြင်း
-                    const modelsList = Object.values(modelMap).sort((a, b) => 
-                        a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
-                    );
-
-                    if (modelsList.length > 0) {
-                        modelsList.forEach(modelItem => {
-                            let videoCount = 0;
-                            const targetName = modelItem.name.toLowerCase();
-
-                            rows.forEach(row => {
-                                const rowModelField = (row.model || '').trim();
-                                if (!rowModelField) return;
-
-                                const modelsInRow = rowModelField.split(',').map(m => m.trim().toLowerCase());
-                                
-                                if (modelsInRow.includes(targetName) || rowModelField.toLowerCase().includes(targetName)) {
-                                    videoCount++;
-                                }
-                            });
-
-                            modelItem.count = videoCount;
-
-                            const imageContent = modelItem.image 
-                                ? `<img src="${modelItem.image}" alt="${modelItem.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
-                                : `<div class="model-placeholder">150 x 150</div>`;
-
-                            const card = document.createElement('a');
-                            card.href = `search.html?model=${encodeURIComponent(modelItem.name)}`;
-                            card.className = 'model-card';
-
-                            card.innerHTML = `
-                                <div class="model-img-container">
-                                    ${imageContent}
-                                    <div class="video-count-badge">
-                                        <i class="fa-solid fa-video"></i> ${modelItem.count} vids
-                                    </div>
-                                </div>
-                                <div class="model-name">${modelItem.name}</div>
-                            `;
-                            container.appendChild(card);
-                        });
-                    } else {
-                        container.innerHTML = '<div class="status-msg">No models found</div>';
-                    }
-                } else {
-                    container.innerHTML = '<div class="status-msg">No models found</div>';
-                }
+                allSheetData = Array.isArray(data) ? data : (data.videos || data.data || []);
             } catch (err) {
                 console.error("Error fetching data:", err);
-                container.innerHTML = '<div class="status-msg">Failed to load data</div>';
+                document.getElementById('modelContainer').innerHTML = '<div class="status-msg">Failed to load data</div>';
             }
+        }
+
+        // ၁။ မော်ဒယ်လ် အားလုံးစာရင်းကို ပြရန် (Click လိုက်ရင် model.html?model=Name ဆီ ကိုယ့်ဘာသာ ပြန်ချိတ်မည်)
+        function renderModelsList() {
+            const container = document.getElementById('modelContainer');
+            const isLoggedIn = checkUserLoggedIn();
+            const modelMap = {};
+
+            allSheetData.forEach(row => {
+                const isVipVideo = row.isVip || row.is_vip === true || String(row.is_vip) === 'true';
+                if (!isLoggedIn && isVipVideo) return;
+
+                const mName = String(row.model_name || row.model || '').trim();
+                const mImg = String(row.model_image || row.image || '').trim();
+
+                if (mName && !modelMap[mName]) {
+                    modelMap[mName] = { name: mName, image: mImg, count: 0 };
+                }
+            });
+
+            const modelsList = Object.values(modelMap).sort((a, b) => 
+                a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
+            );
+
+            if (modelsList.length === 0) {
+                container.innerHTML = '<div class="status-msg">No models found</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            modelsList.forEach(modelItem => {
+                let videoCount = 0;
+                const targetName = modelItem.name.toLowerCase();
+
+                allSheetData.forEach(row => {
+                    const rowModelField = String(row.model_name || row.model || '').toLowerCase();
+                    if (rowModelField.includes(targetName)) videoCount++;
+                });
+
+                modelItem.count = videoCount;
+
+                const imageContent = modelItem.image 
+                    ? `<img src="${modelItem.image}" alt="${modelItem.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
+                    : `<div class="model-placeholder">150 x 150</div>`;
+
+                const card = document.createElement('a');
+                // ကိုယ့်စာမျက်နှာ (model.html) ကိုပဲ ပြန်ညွှန်းပေးထားသည်
+                card.href = `model.html?model=${encodeURIComponent(modelItem.name)}`;
+                card.className = 'model-card';
+
+                card.innerHTML = `
+                    <div class="model-img-container">
+                        ${imageContent}
+                        <div class="video-count-badge">
+                            <i class="fa-solid fa-video"></i> ${modelItem.count} vids
+                        </div>
+                    </div>
+                    <div class="model-name">${modelItem.name}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ၂။ ရွေးချယ်ထားသော မော်ဒယ်လ်၏ ဇာတ်ကားများကို ပြရန်
+        function renderModelVideos(modelName) {
+            const container = document.getElementById('modelContainer');
+            const isLoggedIn = checkUserLoggedIn();
+            const lowerTarget = modelName.toLowerCase().trim();
+
+            const matchedVideos = allSheetData.filter(row => {
+                const isVipVideo = row.isVip || row.is_vip === true || String(row.is_vip) === 'true';
+                if (!isLoggedIn && isVipVideo) return false;
+
+                const mField = String(row.model_name || row.model || '').toLowerCase();
+                return mField.includes(lowerTarget);
+            });
+
+            if (matchedVideos.length === 0) {
+                container.innerHTML = `<div class="status-msg">No videos found for "${modelName}"</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            matchedVideos.forEach(v => {
+                const title = String(v.title || v.name || 'Untitled');
+                const fileId = String(v.file_id || v.id || '');
+                const thumb = String(v.thumbnail || v.thumb || '').trim();
+                const streamUrl = String(v.stream_url || '');
+                const views = v.views || 0;
+
+                const thumbContent = thumb 
+                    ? `<img src="${thumb}" alt="${title}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
+                    : `<div class="model-placeholder">150 x 150</div>`;
+
+                // openPlayer ရှိလျှင်သုံးမည်၊ မရှိလျှင် player.html သို့သွားမည်
+                const clickAction = typeof openPlayer === 'function' 
+                    ? `onclick="openPlayer('${fileId}', '${streamUrl}')"` 
+                    : `href="player.html?id=${encodeURIComponent(fileId)}"`;
+
+                const tagWrapper = typeof openPlayer === 'function' ? 'div' : 'a';
+
+                const card = document.createElement(tagWrapper);
+                if (typeof openPlayer !== 'function') {
+                    card.href = `player.html?id=${encodeURIComponent(fileId)}`;
+                } else {
+                    card.setAttribute('onclick', `openPlayer('${fileId}', '${streamUrl}')`);
+                    card.style.cursor = 'pointer';
+                }
+                card.className = 'model-card';
+
+                card.innerHTML = `
+                    <div class="model-img-container" style="position:relative;">
+                        ${thumbContent}
+                        <div class="video-count-badge">
+                            <i class="fa-solid fa-eye"></i> ${views}
+                        </div>
+                    </div>
+                    <div class="model-name">${title}</div>
+                `;
+                container.appendChild(card);
+            });
         }
     </script>
 </body>
