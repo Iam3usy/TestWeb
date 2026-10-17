@@ -44,7 +44,6 @@
     <!-- Video.js Player Script -->
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
-        // မင်းပေးထားတဲ့ Google Apps Script URL ကို တိုက်ရိုက်သုံးထားသည်
         const API_URL = "https://script.google.com/macros/s/AKfycbw6lq48q4joTcZWkOblA-gxy-UubGVjIHNaq82_epx6IwbVK5kC_qccJ7QQscismt0sWQ/exec";
         const STREAM_BASE_URL = "https://myhubapp.dathalay1.workers.dev/stream?file_id=";
 
@@ -89,7 +88,7 @@
             }
         });
 
-        // model_name နှင့် model_image များကို A to Z စီ၍ ကတ်ပြားထုတ်ရန်
+        // 1. model_name နှင့် model_image ကို သုံး၍ A to Z ကတ်ပြားထုတ်ခြင်း
         function renderModelsAtoZ(videos) {
             const container = document.getElementById('modelContainer');
             if (!container) return;
@@ -144,7 +143,7 @@
             });
         }
 
-        // Model နှိပ်လိုက်လျှင် model row ထဲက နာမည်တူ ဇာတ်ကားများပြရန်
+        // 2. Model နှိပ်လိုက်လျှင် 'model' column (row) ထဲပါသော နာမည်ဖြင့် ဇာတ်ကားများကို တိုက်ရိုက်စစ်ထုတ်ပြသခြင်း
         function renderVideosForModel(selectedModel, videos) {
             const container = document.getElementById('videoContainer');
             if (!container) return;
@@ -153,9 +152,8 @@
             const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
 
             const matchedVideos = videos.filter(v => {
-                const mModel = v.model.toLowerCase();
-                const mName = v.model_name.toLowerCase();
-                return mModel.includes(decodedModel) || mName.includes(decodedModel);
+                const mField = v.model.toLowerCase();
+                return mField.includes(decodedModel);
             });
 
             if (matchedVideos.length === 0) {
