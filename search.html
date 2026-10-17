@@ -45,6 +45,7 @@
             align-items: center;
             gap: 10px;
         }
+        /* လိုအပ်သော Grid ပုံစံများ (Model/Category: 3 cols, Video: 2 cols လို့ချင်ရင် CSS ထဲကအတိုင်း အလိုအလျောက် ယူပါလိမ့်မယ်) */
     </style>
 </head>
 <body>
@@ -77,7 +78,7 @@
         <div class="search-bar-container">
             <div class="search-input-wrapper">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder="Search models, categories, or videos..." oninput="handleSearch()">
+                <input type="text" id="searchInput" placeholder="Search models, categories, file id, or videos..." oninput="handleSearch()">
             </div>
         </div>
 
@@ -91,6 +92,12 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbw6lq48q4joTcZWkOblA-gxy-UubGVjIHNaq82_epx6IwbVK5kC_qccJ7QQscismt0sWQ/exec";
         let allSheetData = [];
+
+        // အကောင့်ဝင်ထားခြင်း ရှိမရှိ စစ်ဆေးရန် Helper
+        function checkUserLoggedIn() {
+            const user = localStorage.getItem('currentUser') || localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+            return user !== null && user !== 'false' && user !== '';
+        }
 
         document.addEventListener("DOMContentLoaded", async () => {
             await fetchAllData();
@@ -138,45 +145,52 @@
                 return;
             }
 
-            // ၁။ Models များကို ရှာဖွေပြီး စုစည်းမည်
+            const isLoggedIn = checkUserLoggedIn();
+
             const matchedModels = {};
-            // ၂။ Categories များကို ရှာဖွေပြီး စုစည်းမည်
             const matchedCategories = {};
-            // ၃။ Videos များကို ရှာဖွေမည်
             const matchedVideos = [];
 
             allSheetData.forEach(row => {
-                const mName = String(row.model_name || '').trim();
-                const mImg = String(row.model_image || '').trim();
-                const rowModelField = String(row.model || '').trim();
+                // VIP စစ်ဆေးချက် (အကောင့်မဝင်ထားရင် VIP များကို ရှာမတွေ့စေရ)
+                const isVipVideo = row.isVip || row.is_vip === true || String(row.is_vip) === 'true';
+                if (!isLoggedIn && isVipVideo) return;
 
-                const catName = String(row.category_name || '').trim();
-                const catImg = String(row.category_image || '').trim();
-                const rowCatField = String(row.category || '').trim();
+                const mName = String(row.model_name || row.model || '').trim();
+                const mImg = String(row.model_image || row.image || '').trim();
+                
+                const catName = String(row.category_name || row.category || '').trim();
+                const catImg = String(row.category_image || row.image || '').trim();
 
-                const title = String(row.title || '').trim();
+                const title = String(row.title || row.name || '').trim();
+                const fileId = String(row.file_id || row.id || '').trim();
 
-                // Model စစ်ဆေးခြင်း
-                if (mName && (mName.toLowerCase().includes(lowerQuery) || rowModelField.toLowerCase().includes(lowerQuery))) {
+                // 1. Model ရှာဖွေခြင်း
+                if (mName && mName.toLowerCase().includes(lowerQuery)) {
                     if (!matchedModels[mName]) {
                         matchedModels[mName] = { name: mName, image: mImg, count: 0 };
                     }
                 }
 
-                // Category စစ်ဆေးခြင်း
-                if (catName && (catName.toLowerCase().includes(lowerQuery) || rowCatField.toLowerCase().includes(lowerQuery))) {
+                // 2. Category ရှာဖွေခြင်း
+                if (catName && catName.toLowerCase().includes(lowerQuery)) {
                     if (!matchedCategories[catName]) {
                         matchedCategories[catName] = { name: catName, image: catImg, count: 0 };
                     }
                 }
 
-                // Video စစ်ဆေးခြင်း (Title, Model, Category ထဲတွင် ပါဝင်ခြင်း)
+                // 3. Video ရှာဖွေခြင်း (Title, File ID, Model, Category ထဲတွင် ပါဝင်ခြင်း)
                 if (
                     title.toLowerCase().includes(lowerQuery) ||
-                    rowModelField.toLowerCase().includes(lowerQuery) ||
-                    rowCatField.toLowerCase().includes(lowerQuery)
+                    fileId.toLowerCase().includes(lowerQuery) ||
+                    mName.toLowerCase().includes(lowerQuery) ||
+                    catName.toLowerCase().includes(lowerQuery)
                 ) {
-                    matchedVideos.push(row);
+                    if (!matchedVideos.some(v => String(v.file_id || v.id) === fileId && fileId !== '')) {
+                        matchedVideos.push(row);
+                    } else if (fileId === '') {
+                        matchedVideos.push(row);
+                    }
                 }
             });
 
@@ -185,7 +199,7 @@
             modelsList.forEach(m => {
                 let cnt = 0;
                 allSheetData.forEach(row => {
-                    const rf = String(row.model || '').toLowerCase();
+                    const rf = String(row.model_name || row.model || '').toLowerCase();
                     if (rf.includes(m.name.toLowerCase())) cnt++;
                 });
                 m.count = cnt;
@@ -196,16 +210,15 @@
             categoriesList.forEach(c => {
                 let cnt = 0;
                 allSheetData.forEach(row => {
-                    const cf = String(row.category || '').toLowerCase();
+                    const cf = String(row.category_name || row.category || '').toLowerCase();
                     if (cf.includes(c.name.toLowerCase())) cnt++;
                 });
                 c.count = cnt;
             });
 
-            // HTML ပုံဖော်ခြင်း
             let htmlOutput = '';
 
-            // ─── အပိုင်း ၁။ Model List (Grid ပုံစံ) ───
+            // ─── အပိုင်း ၁။ Model List (model.html သို့ လင့်ခ်ချိတ်မည်) ───
             if (modelsList.length > 0) {
                 htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-user-star"></i> Models (${modelsList.length})</div>`;
                 htmlOutput += `<div class="model-grid">`;
@@ -215,7 +228,7 @@
                         : `<div class="model-placeholder">150 x 150</div>`;
                     
                     htmlOutput += `
-                        <a href="search.html?model=${encodeURIComponent(m.name)}" class="model-card">
+                        <a href="model.html?model=${encodeURIComponent(m.name)}" class="model-card">
                             <div class="model-img-container">
                                 ${imgContent}
                                 <div class="video-count-badge"><i class="fa-solid fa-video"></i> ${m.count} vids</div>
@@ -227,7 +240,7 @@
                 htmlOutput += `</div>`;
             }
 
-            // ─── အပိုင်း ၂။ Category List (Grid ပုံစံ) ───
+            // ─── အပိုင်း ၂။ Category List (category.html သို့ လင့်ခ်ချိတ်မည်) ───
             if (categoriesList.length > 0) {
                 htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-hashtag"></i> Categories (${categoriesList.length})</div>`;
                 htmlOutput += `<div class="model-grid">`;
@@ -237,7 +250,7 @@
                         : `<div class="model-placeholder">150 x 150</div>`;
                     
                     htmlOutput += `
-                        <a href="search.html?category=${encodeURIComponent(c.name)}" class="model-card">
+                        <a href="category.html?category=${encodeURIComponent(c.name)}" class="model-card">
                             <div class="model-img-container">
                                 ${imgContent}
                                 <div class="video-count-badge"><i class="fa-solid fa-video"></i> ${c.count} vids</div>
@@ -249,25 +262,34 @@
                 htmlOutput += `</div>`;
             }
 
-            // ─── အပိုင်း ၃။ နောက်ဆုံး Videos Grid ───
+            // ─── အပိုင်း ၃။ Videos Grid (app.js ထဲက openPlayer သို့မဟုတ် player.html ကို သုံးမည်) ───
             if (matchedVideos.length > 0) {
                 htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-video"></i> Videos (${matchedVideos.length})</div>`;
-                htmlOutput += `<div class="model-grid">`; // ဗီဒီယိုများအတွက်လည်း Grid ပုံစံတူ သုံးနိုင်သည်
+                htmlOutput += `<div class="model-grid">`;
                 matchedVideos.forEach(v => {
-                    const vTitle = String(v.title || 'Untitled');
-                    const vThumbnail = String(v.thumbnail || '').trim();
-                    const vFileId = String(v.file_id || '');
+                    const vTitle = String(v.title || v.name || 'Untitled');
+                    const vThumbnail = String(v.thumbnail || v.thumb || '').trim();
+                    const vFileId = String(v.file_id || v.id || '');
+                    const streamUrl = String(v.stream_url || '');
+
                     const thumbContent = vThumbnail 
                         ? `<img src="${vThumbnail}" alt="${vTitle}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
                         : `<div class="model-placeholder">150 x 150</div>`;
 
+                    // openPlayer function ရှိရင် အဲ့ဒါကိုသုံးမယ်၊ မရှိရင် player.html ကိုသွားမယ်
+                    const clickAction = typeof openPlayer === 'function' 
+                        ? `onclick="openPlayer('${vFileId}', '${streamUrl}')"` 
+                        : `href="player.html?id=${encodeURIComponent(vFileId)}"`;
+
+                    const tagWrapper = typeof openPlayer === 'function' ? 'div' : 'a';
+
                     htmlOutput += `
-                        <a href="player.html?id=${encodeURIComponent(vFileId)}" class="model-card">
+                        <${tagWrapper} ${clickAction} class="model-card" style="cursor:pointer;">
                             <div class="model-img-container">
                                 ${thumbContent}
                             </div>
                             <div class="model-name">${vTitle}</div>
-                        </a>
+                        </${tagWrapper}>
                     `;
                 });
                 htmlOutput += `</div>`;
