@@ -33,7 +33,7 @@
             <h1 id="pageTitle">Models</h1>
         </div>
 
-        <!-- Model List / Videos Container -->
+        <!-- Container -->
         <div id="modelContainer" class="model-grid">
             <div class="status-msg">Loading...</div>
         </div>
@@ -81,9 +81,10 @@
             }
         }
 
-        // ၁။ မော်ဒယ်လ် အားလုံးစာရင်းကို ပြရန် (Click လိုက်ရင် model.html?model=Name ဆီ ကိုယ့်ဘာသာ ပြန်ချိတ်မည်)
+        // ၁။ မော်ဒယ်လ် အားလုံးစာရင်းကို ပြရန်
         function renderModelsList() {
             const container = document.getElementById('modelContainer');
+            container.className = 'model-grid'; // မူလ CSS ထဲက Model Grid Class
             const isLoggedIn = checkUserLoggedIn();
             const modelMap = {};
 
@@ -125,7 +126,6 @@
                     : `<div class="model-placeholder">150 x 150</div>`;
 
                 const card = document.createElement('a');
-                // ကိုယ့်စာမျက်နှာ (model.html) ကိုပဲ ပြန်ညွှန်းပေးထားသည်
                 card.href = `model.html?model=${encodeURIComponent(modelItem.name)}`;
                 card.className = 'model-card';
 
@@ -142,9 +142,11 @@
             });
         }
 
-        // ၂။ ရွေးချယ်ထားသော မော်ဒယ်လ်၏ ဇာတ်ကားများကို ပြရန်
+        // ၂။ ရွေးချယ်ထားသော မော်ဒယ်လ်၏ ဇာတ်ကားများကို ပြရန် (Index မှာသုံးတဲ့ မူလ video-grid class ကို ညွှန်မည်)
         function renderModelVideos(modelName) {
             const container = document.getElementById('modelContainer');
+            container.className = 'video-grid'; // index.html မှာသုံးတဲ့ မူလ CSS Grid Class
+            
             const isLoggedIn = checkUserLoggedIn();
             const lowerTarget = modelName.toLowerCase().trim();
 
@@ -157,7 +159,7 @@
             });
 
             if (matchedVideos.length === 0) {
-                container.innerHTML = `<div class="status-msg">No videos found for "${modelName}"</div>`;
+                container.innerHTML = `<div class="status-msg" style="grid-column: 1 / -1;">No videos found for "${modelName}"</div>`;
                 return;
             }
 
@@ -170,33 +172,28 @@
                 const views = v.views || 0;
 
                 const thumbContent = thumb 
-                    ? `<img src="${thumb}" alt="${title}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
-                    : `<div class="model-placeholder">150 x 150</div>`;
+                    ? `<img src="${thumb}" alt="${title}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>No Image</div>'">` 
+                    : `<div class="model-placeholder">No Image</div>`;
 
-                // openPlayer ရှိလျှင်သုံးမည်၊ မရှိလျှင် player.html သို့သွားမည်
-                const clickAction = typeof openPlayer === 'function' 
-                    ? `onclick="openPlayer('${fileId}', '${streamUrl}')"` 
-                    : `href="player.html?id=${encodeURIComponent(fileId)}"`;
+                const card = document.createElement('div');
+                card.className = 'video-card'; // မူလ CSS ထဲက ဗီဒီယိုကတ် Class
 
-                const tagWrapper = typeof openPlayer === 'function' ? 'div' : 'a';
-
-                const card = document.createElement(tagWrapper);
-                if (typeof openPlayer !== 'function') {
-                    card.href = `player.html?id=${encodeURIComponent(fileId)}`;
-                } else {
+                if (typeof openPlayer === 'function') {
                     card.setAttribute('onclick', `openPlayer('${fileId}', '${streamUrl}')`);
                     card.style.cursor = 'pointer';
+                } else {
+                    card.onclick = () => { window.location.href = `player.html?id=${encodeURIComponent(fileId)}`; };
+                    card.style.cursor = 'pointer';
                 }
-                card.className = 'model-card';
 
                 card.innerHTML = `
-                    <div class="model-img-container" style="position:relative;">
+                    <div class="thumb-container" style="position:relative;">
                         ${thumbContent}
-                        <div class="video-count-badge">
+                        <div class="video-count-badge" style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">
                             <i class="fa-solid fa-eye"></i> ${views}
                         </div>
                     </div>
-                    <div class="model-name">${title}</div>
+                    <div class="video-title" style="padding:8px; text-align:center; color:#fff; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title}</div>
                 `;
                 container.appendChild(card);
             });
