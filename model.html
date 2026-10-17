@@ -45,7 +45,8 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        // Page စပွင့်လာတာနဲ့ Worker ကနေ ဒေတာဆွဲယူရန် app.js ရဲ့ function ကို အရင်ခေါ်မည်
+        document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const selectedModel = urlParams.get('model');
             const pageTitle = document.getElementById('pageTitle');
@@ -54,35 +55,41 @@
                 pageTitle.innerText = selectedModel;
             }
 
-            // app.js မှ ဒေတာရောက်လာသည်အထိ စောင့်ဆိုင်းခြင်း
+            // app.js ထဲက ဒေတာဆွဲတဲ့ function ရှိမရှိ စစ်ပြီး တိုက်ရိုက်ခေါ်ယူမည်
+            if (typeof loadDataFromWorker === 'function') {
+                await loadDataFromWorker();
+            }
+
+            // ဒေတာရောက်လာသည်အထိ စောင့်ဆိုင်းပြီးမှ render လုပ်မည်
             const checkData = setInterval(() => {
                 if (typeof modelData !== 'undefined' && modelData.length > 0) {
                     clearInterval(checkData);
-                    renderPage(selectedModel);
+                    renderPageDirectly(selectedModel);
                 } else if (typeof videoData !== 'undefined' && videoData.length > 0) {
                     clearInterval(checkData);
-                    renderPage(selectedModel);
+                    renderPageDirectly(selectedModel);
                 }
             }, 50);
 
+            // 5 စက္ကန့်ကျော်ရင်လည်း Force လုပ်ပြီး ပြသရန်
             setTimeout(() => {
                 clearInterval(checkData);
-                renderPage(selectedModel);
+                renderPageDirectly(selectedModel);
             }, 5000);
         });
 
-        function renderPage(selectedModel) {
+        function renderPageDirectly(selectedModel) {
             const modelContainer = document.getElementById('modelContainer');
             const videoContainer = document.getElementById('videoContainer');
 
             if (selectedModel) {
-                // ၁။ Model နှိပ်ထားလျှင် model row ထဲက နာမည်တူ ဇာတ်ကားများကို 2/3 columns ဖြင့်ပြမည်
+                // ၁။ Model ကိုနှိပ်ထားလျှင် model row ထဲက နာမည်တူ ဇာတ်ကားများကို ကြီးမားသော card-grid ဖြင့်ပြမည်
                 if (modelContainer) modelContainer.style.display = 'none';
                 if (videoContainer) videoContainer.style.display = 'flex';
                 
                 renderVideosForModel(selectedModel);
             } else {
-                // ၂။ ပုံမှန် Model Hub ဝင်လျှင် model_name နဲ့ model_image ကို A to Z ဖြင့်ပြမည်
+                // ၂။ ပုံမှန် Model Hub ဝင်လျှင် model_name နဲ့ model_image ကို A to Z ဖြင့် ကတ်ပြားများပြမည်
                 if (videoContainer) videoContainer.style.display = 'none';
                 if (modelContainer) {
                     modelContainer.style.display = 'grid';
