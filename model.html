@@ -88,7 +88,7 @@
             }
         });
 
-        // 1. model_name နှင့် model_image ကို သုံး၍ A to Z ကတ်ပြားထုတ်ခြင်း
+        // 1. model_name & model_image ဖြင့် A to Z ကတ်ထုတ်ပြီး, count ကို 'model' ဖြင့် တွက်ချက်ခြင်း
         function renderModelsAtoZ(videos) {
             const container = document.getElementById('modelContainer');
             if (!container) return;
@@ -98,6 +98,7 @@
 
             const modelMap = new Map();
 
+            // ပထမအဆင့် - model_name နှင့် model_image များကို စုဆောင်း၍ A to Z မော်ဒယ်စာရင်း တည်ဆောက်ခြင်း
             videos.forEach(v => {
                 if (v.model_name) {
                     let names = v.model_name.split(',').map(n => n.trim()).filter(n => n !== '');
@@ -107,13 +108,25 @@
                             modelMap.set(lower, {
                                 name: name,
                                 image: v.model_image || 'https://via.placeholder.com/150',
-                                count: 1
+                                count: 0
                             });
                         } else {
-                            modelMap.get(lower).count++;
-                            if (!modelMap.get(lower).image && v.model_image) {
-                                modelMap.get(lower).image = v.model_image;
+                            let m = modelMap.get(lower);
+                            if ((!m.image || m.image.includes('placeholder')) && v.model_image) {
+                                m.image = v.model_image;
                             }
+                        }
+                    });
+                }
+            });
+
+            // ဒုတိယအဆင့် - ဇာတ်ကားရေ (Count) ကို 'model' ကော်လံထဲတွင် ပါဝင်မှုအပေါ်မူတည်၍ အမှန်အတိုင်း ရေတွက်ခြင်း
+            videos.forEach(v => {
+                if (v.model) {
+                    let vModels = v.model.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
+                    modelMap.forEach((mObj, lowerKey) => {
+                        if (vModels.includes(lowerKey)) {
+                            mObj.count++;
                         }
                     });
                 }
@@ -143,7 +156,7 @@
             });
         }
 
-        // 2. Model နှိပ်လိုက်လျှင် 'model' column (row) ထဲပါသော နာမည်ဖြင့် ဇာတ်ကားများကို တိုက်ရိုက်စစ်ထုတ်ပြသခြင်း
+        // 2. Model နှိပ်လိုက်လျှင် 'model' ကော်လံကို အခြေခံ၍ သက်ဆိုင်ရာ ဇာတ်ကားများကို စစ်ထုတ်ပြသခြင်း
         function renderVideosForModel(selectedModel, videos) {
             const container = document.getElementById('videoContainer');
             if (!container) return;
@@ -152,8 +165,9 @@
             const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
 
             const matchedVideos = videos.filter(v => {
-                const mField = v.model.toLowerCase();
-                return mField.includes(decodedModel);
+                if (!v.model) return false;
+                let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
+                return vModels.includes(decodedModel);
             });
 
             if (matchedVideos.length === 0) {
