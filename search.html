@@ -3,112 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search - My Hub</title>
+    <title>My Hub - Search</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://vjs.zencdn.net/8.10.0/video-js.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .search-box-wrap { padding: 15px; }
-        .search-input { width: 100%; padding: 12px 15px; background: var(--card-bg); border: 1px solid var(--border-color); color: #fff; border-radius: 8px; font-size: 1rem; }
-        .section-title { padding: 0 15px; font-size: 1.1rem; margin: 15px 0 10px 0; color: var(--accent-color); font-weight: bold; }
-        .search-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px 15px 15px; }
-        .search-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 15px 15px 15px; }
-        @media(max-width: 600px) { .search-grid-3 { grid-template-columns: repeat(3, 1fr); } }
-    </style>
 </head>
 <body>
 
+    <!-- Side Menu -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
-            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="toggleSidebar()" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
-            <li class="menu-item"><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
-            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li class="menu-item"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li class="menu-item active"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li class="menu-item"><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li class="menu-item" id="sidebarAuthItem"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
+            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
+            <li><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="active"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
+            <li><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
         </ul>
     </nav>
 
-    <main class="main-content" id="mainContent">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="header">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1>Search</h1>
+            <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1>Search Hub</h1>
         </div>
 
-        <div class="search-box-wrap">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search models, categories, videos..." oninput="handleLiveSearch(this.value)">
+        <!-- Search Input Bar -->
+        <div class="search-bar-container">
+            <div class="search-input-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search models, categories, or videos..." oninput="handleSearch()">
+            </div>
         </div>
 
-        <div id="searchResults"></div>
+        <!-- Results Container -->
+        <div id="searchResults">
+            <div class="status-msg">Type something or select a model/category to search...</div>
+        </div>
     </main>
 
-    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        function handleLiveSearch(query) {
+        const API_URL = "https://script.google.com/macros/s/AKfycbw6lq48q4joTcZWkOblA-gxy-UubGVjIHNaq82_epx6IwbVK5kC_qccJ7QQscismt0sWQ/exec";
+        let allSheetData = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await fetchAllData();
+            
+            // URL ထဲမှ ?model=... သို့မဟုတ် ?category=... ကို ဖတ်ယူ၍ အလိုအလျောက် ရှာဖွေပေးခြင်း
+            const urlParams = new URLSearchParams(window.location.search);
+            const modelParam = urlParams.get('model');
+            const categoryParam = urlParams.get('category');
+
+            if (modelParam) {
+                document.getElementById('searchInput').value = modelParam;
+                performSearch(modelParam);
+            } else if (categoryParam) {
+                document.getElementById('searchInput').value = categoryParam;
+                performSearch(categoryParam);
+            }
+        });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        async function fetchAllData() {
+            try {
+                const response = await fetch(`${API_URL}?action=getAllData`);
+                const data = await response.json();
+                allSheetData = Array.isArray(data) ? data : (data.videos || data.data || []);
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                document.getElementById('searchResults').innerHTML = '<div class="status-msg">Failed to load data</div>';
+            }
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            performSearch(query);
+        }
+
+        function performSearch(query) {
             const container = document.getElementById('searchResults');
-            if (!query.trim()) {
-                container.innerHTML = '';
+            const lowerQuery = query.toLowerCase();
+
+            if (!lowerQuery) {
+                container.innerHTML = '<div class="status-msg">Type something or select a model/category to search...</div>';
                 return;
             }
-            const q = query.toLowerCase();
 
-            const matchedModels = modelData.filter(m => m.name.toLowerCase().includes(q));
-            const matchedCats = categoryData.filter(c => c.name.toLowerCase().includes(q));
-            const matchedVideos = videoData.filter(v => v.title.toLowerCase().includes(q));
+            const matchedModels = {};
+            const matchedCategories = {};
+            const matchedVideos = [];
 
-            let html = '';
+            allSheetData.forEach(row => {
+                const mName = String(row.model_name || '').trim();
+                const mImg = String(row.model_image || '').trim();
+                const rowModelField = String(row.model || '').trim();
 
-            if (matchedModels.length > 0) {
-                html += `<div class="section-title">Models</div><div class="search-grid-3">`;
-                matchedModels.forEach(m => {
-                    html += `
-                        <a href="model.html?model=${encodeURIComponent(m.name)}" style="text-decoration:none; background:var(--card-bg); border-radius:8px; overflow:hidden; border:1px solid var(--border-color); display:block;">
-                            <img src="${m.image || 'https://via.placeholder.com/150'}" style="width:100%; aspect-ratio:1/1; object-fit:cover;">
-                            <div style="font-size:12px; font-weight:600; text-align:center; padding:6px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.name}</div>
+                const catName = String(row.category_name || '').trim();
+                const catImg = String(row.category_image || '').trim();
+                const rowCatField = String(row.category || '').trim();
+
+                const title = String(row.title || '').trim();
+
+                // Model စစ်ဆေးခြင်း
+                if (mName && (mName.toLowerCase().includes(lowerQuery) || rowModelField.toLowerCase().includes(lowerQuery))) {
+                    if (!matchedModels[mName]) {
+                        matchedModels[mName] = { name: mName, image: mImg, count: 0 };
+                    }
+                }
+
+                // Category စစ်ဆေးခြင်း
+                if (catName && (catName.toLowerCase().includes(lowerQuery) || rowCatField.toLowerCase().includes(lowerQuery))) {
+                    if (!matchedCategories[catName]) {
+                        matchedCategories[catName] = { name: catName, image: catImg, count: 0 };
+                    }
+                }
+
+                // Video စစ်ဆေးခြင်း
+                if (
+                    title.toLowerCase().includes(lowerQuery) ||
+                    rowModelField.toLowerCase().includes(lowerQuery) ||
+                    rowCatField.toLowerCase().includes(lowerQuery)
+                ) {
+                    matchedVideos.push(row);
+                }
+            });
+
+            // Model Video Count တွက်ချက်ခြင်း
+            const modelsList = Object.values(matchedModels);
+            modelsList.forEach(m => {
+                let cnt = 0;
+                allSheetData.forEach(row => {
+                    const rf = String(row.model || '').toLowerCase();
+                    if (rf.includes(m.name.toLowerCase())) cnt++;
+                });
+                m.count = cnt;
+            });
+
+            // Category Video Count တွက်ချက်ခြင်း
+            const categoriesList = Object.values(matchedCategories);
+            categoriesList.forEach(c => {
+                let cnt = 0;
+                allSheetData.forEach(row => {
+                    const cf = String(row.category || '').toLowerCase();
+                    if (cf.includes(c.name.toLowerCase())) cnt++;
+                });
+                c.count = cnt;
+            });
+
+            let htmlOutput = '';
+
+            // ၁။ Model List Section (A to Z)
+            if (modelsList.length > 0) {
+                modelsList.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+                htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-user-star"></i> Models (${modelsList.length})</div>`;
+                htmlOutput += `<div class="model-grid">`;
+                modelsList.forEach(m => {
+                    const imgContent = m.image 
+                        ? `<img src="${m.image}" alt="${m.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
+                        : `<div class="model-placeholder">150 x 150</div>`;
+                    
+                    htmlOutput += `
+                        <a href="search.html?model=${encodeURIComponent(m.name)}" class="model-card">
+                            <div class="model-img-container">
+                                ${imgContent}
+                                <div class="video-count-badge"><i class="fa-solid fa-video"></i> ${m.count} vids</div>
+                            </div>
+                            <div class="model-name">${m.name}</div>
                         </a>
                     `;
                 });
-                html += `</div>`;
+                htmlOutput += `</div>`;
             }
 
-            if (matchedCats.length > 0) {
-                html += `<div class="section-title">Categories</div><div class="search-grid-3">`;
-                matchedCats.forEach(c => {
-                    html += `
-                        <a href="category.html?category=${encodeURIComponent(c.name)}" style="text-decoration:none; background:var(--card-bg); border-radius:8px; overflow:hidden; border:1px solid var(--border-color); display:block;">
-                            <img src="${c.image || 'https://via.placeholder.com/150'}" style="width:100%; aspect-ratio:1/1; object-fit:cover;">
-                            <div style="font-size:12px; font-weight:600; text-align:center; padding:6px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.name}</div>
+            // ၂။ Category List Section (A to Z)
+            if (categoriesList.length > 0) {
+                categoriesList.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+                htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-hashtag"></i> Categories (${categoriesList.length})</div>`;
+                htmlOutput += `<div class="model-grid">`;
+                categoriesList.forEach(c => {
+                    const imgContent = c.image 
+                        ? `<img src="${c.image}" alt="${c.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
+                        : `<div class="model-placeholder">150 x 150</div>`;
+                    
+                    htmlOutput += `
+                        <a href="search.html?category=${encodeURIComponent(c.name)}" class="model-card">
+                            <div class="model-img-container">
+                                ${imgContent}
+                                <div class="video-count-badge"><i class="fa-solid fa-video"></i> ${c.count} vids</div>
+                            </div>
+                            <div class="model-name">${c.name}</div>
                         </a>
                     `;
                 });
-                html += `</div>`;
+                htmlOutput += `</div>`;
             }
 
+            // ၃။ Video List Section
             if (matchedVideos.length > 0) {
-                html += `<div class="section-title">Videos</div><div class="search-grid-2">`;
+                htmlOutput += `<div class="search-section-title"><i class="fa-solid fa-video"></i> Videos (${matchedVideos.length})</div>`;
+                htmlOutput += `<div class="model-grid">`;
                 matchedVideos.forEach(v => {
-                    html += `
-                        <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')" style="cursor:pointer; background:var(--card-bg); border-radius:8px; overflow:hidden; border:1px solid var(--border-color);">
-                            <div class="thumbnail-box" style="position:relative; width:100%; aspect-ratio:16/9; background:#000;">
-                                <video src="${v.thumbnail}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>
-                                <span style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.8); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;"><i class="fa-solid fa-eye"></i> ${v.views}</span>
+                    const vTitle = String(v.title || 'Untitled');
+                    const vThumbnail = String(v.thumbnail || '').trim();
+                    const vFileId = String(v.file_id || '');
+                    const thumbContent = vThumbnail 
+                        ? `<img src="${vThumbnail}" alt="${vTitle}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>150 x 150</div>'">` 
+                        : `<div class="model-placeholder">150 x 150</div>`;
+
+                    htmlOutput += `
+                        <a href="player.html?id=${encodeURIComponent(vFileId)}" class="model-card">
+                            <div class="model-img-container">
+                                ${thumbContent}
                             </div>
-                            <div class="video-info" style="padding:8px;">
-                                <h3 style="font-size:12px; color:#fff; margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${v.title}</h3>
-                            </div>
-                        </div>
+                            <div class="model-name">${vTitle}</div>
+                        </a>
                     `;
                 });
-                html += `</div>`;
+                htmlOutput += `</div>`;
             }
 
-            container.innerHTML = html || `<p style="text-align:center; color:#a4b0be; padding:30px;">No results found</p>`;
+            if (modelsList.length === 0 && categoriesList.length === 0 && matchedVideos.length === 0) {
+                container.innerHTML = '<div class="status-msg">No results found</div>';
+            } else {
+                container.innerHTML = htmlOutput;
+            }
         }
     </script>
 </body>
