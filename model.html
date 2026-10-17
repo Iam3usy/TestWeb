@@ -9,168 +9,90 @@
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
 </head>
 <body>
-
     <!-- Side Menu -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
-            <button onclick="toggleSidebar()" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <ul class="menu-list">
-            <li><a href="index.html"><i class="fa-solid fa-fire"></i> Latest Video</a></li>
-            <li><a href="popular.html"><i class="fa-solid fa-chart-line"></i> Popular Video</a></li>
-            <li class="active"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
-            <li><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
-            <li><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
-            <li><a href="vip.html"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
-            <li><a href="account.html"><i class="fa-solid fa-user"></i> Account</a></li>
+            <li class="menu-item"><a href="index.html"><i class="fa-solid fa-fire"></i> Latest</a></li>
+            <li class="menu-item"><a href="index.html?sort=popular"><i class="fa-solid fa-chart-line"></i> Popular</a></li>
+            <li class="menu-item"><a href="category.html"><i class="fa-solid fa-hashtag"></i> Category</a></li>
+            <li class="menu-item active"><a href="model.html"><i class="fa-solid fa-user-star"></i> Model</a></li>
+            <li class="menu-item"><a href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search</a></li>
+            <li class="menu-item"><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+            <li class="menu-item"><a href="javascript:void(0)" onclick="checkVipAccess()"><i class="fa-solid fa-crown"></i> VIP Zone</a></li>
         </ul>
     </nav>
 
-    <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
         <div class="header">
-            <button onclick="toggleSidebar()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1 id="pageTitle">Models</h1>
         </div>
-
-        <!-- Container -->
-        <div id="videoContainer" class="model-grid">
-            <div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Loading...</div>
-        </div>
+        <!-- Model တွေပြမယ့် နေရာ -->
+        <div class="card-grid" id="modelContainer"></div>
+        <!-- မော်ဒယ်လ်ကိုနှိပ်ရင် ဇာတ်ကားတွေပြမယ့် နေရာ -->
+        <div class="video-grid" id="videoContainer" style="display:none;"></div>
     </main>
 
-    <!-- Video.js Script for Player -->
+    <!-- Video.js Player Script -->
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // app.js မှ loadDataFromWorker ဖြင့် videoData ရလာသည်အထိ စောင့်ဆိုင်းပြီးမှ render လုပ်ရန်
-        window.addEventListener('DOMContentLoaded', () => {
-            const checkDataInterval = setInterval(() => {
-                if (typeof videoData !== 'undefined' && videoData.length > 0) {
-                    clearInterval(checkDataInterval);
-                    renderModelPage();
+        // Page စပွင့်လာချိန်မှာ app.js က ဒေတာတွေကို ဆွဲယူပြီးတာနဲ့ 
+        // URL မှာ ?model= ပါမပါစစ်ပြီး မှန်ကန်တဲ့ function ကို ခေါ်ပေးပါမည်
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedModel = urlParams.get('model');
+            const pageTitle = document.getElementById('pageTitle');
+
+            if (selectedModel && pageTitle) {
+                pageTitle.innerText = selectedModel;
+            }
+
+            // app.js ထဲက loadDataFromWorker ကို စောင့်ရန် သို့မဟုတ် ခေါ်ရန်
+            if (typeof loadDataFromWorker === 'function') {
+                await loadDataFromWorker();
+            }
+
+            // တစ်ခါတလေ ဒေတာဆွဲတာ နှေးတတ်၍ ခဏစောင့်ပြီးမှ ထပ်စစ်ရန်
+            const checkInterval = setInterval(() => {
+                if (typeof modelData !== 'undefined' && modelData.length > 0) {
+                    clearInterval(checkInterval);
+                    executePageLogic();
                 }
             }, 50);
 
-            // 3 seconds timeout 
             setTimeout(() => {
-                clearInterval(checkDataInterval);
-                renderModelPage();
+                clearInterval(checkInterval);
+                executePageLogic();
             }, 3000);
         });
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
-        function renderModelPage() {
-            const container = document.getElementById('videoContainer');
-            const titleElement = document.getElementById('pageTitle');
-            if (!container) return;
-
+        function executePageLogic() {
             const urlParams = new URLSearchParams(window.location.search);
             const selectedModel = urlParams.get('model');
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const modelContainer = document.getElementById('modelContainer');
+            const videoContainer = document.getElementById('videoContainer');
 
-            const allVideos = typeof videoData !== 'undefined' ? videoData : [];
-
-            if (allVideos.length === 0) {
-                container.innerHTML = '<div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">ဗီဒီယို ဒေတာ မရှိသေးပါ။</div>';
-                return;
-            }
-
-            // အကောင့်မဝင်ထားလျှင် VIP ဖယ်ထုတ်ရန်
-            const availableVideos = allVideos.filter(v => {
-                if (!isLoggedIn && v.isVip) return false;
-                return true;
-            });
-
-            // ၁။ မော်ဒယ်လ် တစ်ခုကို နှိပ်ထားလျှင် (အဲ့ဒီ Model ပါသော ဗီဒီယိုများကို ဇာတ်ကားကတ်ပြားများဖြင့် ပြမည်)
             if (selectedModel) {
-                const decodedModel = decodeURIComponent(selectedModel).trim();
-                if (titleElement) titleElement.innerText = decodedModel;
-
-                const matchedVideos = availableVideos.filter(v => {
-                    const mField = String(v.model || '').trim().toLowerCase();
-                    return mField.includes(decodedModel.toLowerCase());
-                });
-
-                container.className = 'video-grid'; // Index ကဲ့သို့ ဇာတ်ကားပြ Grid သို့ပြောင်းမည်
-
-                if (matchedVideos.length === 0) {
-                    container.innerHTML = `<p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">"${decodedModel}" နှင့် ပတ်သက်သော ဗီဒီယို မရှိသေးပါ။</p>`;
-                    return;
+                // မော်ဒယ်လ်ကို နှိပ်ထားလျှင် Model ကတ်ပြားဖျောက်ပြီး ဇာတ်ကားတွေပြမည်
+                if (modelContainer) modelContainer.style.display = 'none';
+                if (videoContainer) videoContainer.style.display = 'flex';
+                if (typeof renderContent === 'function') {
+                    renderContent();
                 }
-
-                container.innerHTML = '';
-                matchedVideos.forEach(v => {
-                    container.innerHTML += `
-                        <div class="video-card" onclick="openPlayer('${v.stream_url}')">
-                            <div class="thumbnail-box">
-                                <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
-                                <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
-                            </div>
-                            <div class="video-info"><h3>${v.title}</h3></div>
-                        </div>
-                    `;
-                });
-
             } else {
-                // ၂။ မော်ဒယ်လ် စာရင်း အားလုံးပြရန် (Model ကတ်ပြားများဖြင့် ပြမည်)
-                if (titleElement) titleElement.innerText = "Models";
-
-                const modelMap = {};
-                availableVideos.forEach(v => {
-                    const mName = String(v.model || '').trim();
-                    const mImg = String(v.model_image || '').trim();
-
-                    if (mName && !modelMap[mName]) {
-                        modelMap[mName] = {
-                            name: mName,
-                            image: mImg,
-                            count: 0
-                        };
+                // ပုံမှန် Model Hub ဝင်ချိန်
+                if (videoContainer) videoContainer.style.display = 'none';
+                if (modelContainer) {
+                    modelContainer.style.display = 'grid';
+                    if (typeof renderModelsDirect === 'function') {
+                        renderModelsDirect();
                     }
-                });
-
-                const modelsList = Object.values(modelMap).sort((a, b) => 
-                    a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
-                );
-
-                container.className = 'model-grid'; // Model Grid သို့ပြောင်းမည်
-
-                if (modelsList.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color:#a4b0be; grid-column:1/-1; padding:30px;">မော်ဒယ်လ် ဒေတာ မရှိသေးပါ။</p>';
-                    return;
                 }
-
-                container.innerHTML = '';
-                modelsList.forEach(m => {
-                    let vCount = 0;
-                    availableVideos.forEach(v => {
-                        const mField = String(v.model || '').trim().toLowerCase();
-                        if (mField.includes(m.name.toLowerCase())) {
-                            vCount++;
-                        }
-                    });
-
-                    const imgTag = m.image 
-                        ? `<img src="${m.image}" alt="${m.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>No Image</div>'">`
-                        : `<div class="model-placeholder">No Image</div>`;
-
-                    container.innerHTML += `
-                        <a href="model.html?model=${encodeURIComponent(m.name)}" class="model-card">
-                            <div class="model-img-container">
-                                ${imgTag}
-                                <div class="video-count-badge">
-                                    <i class="fa-solid fa-video"></i> ${vCount} vids
-                                </div>
-                            </div>
-                            <div class="model-name">${m.name}</div>
-                        </a>
-                    `;
-                });
             }
         }
     </script>
