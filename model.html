@@ -34,7 +34,7 @@
             <h1 id="pageTitle">Models</h1>
         </div>
 
-        <!-- Dynamic Container (Model List ချိန် model-grid, Video List ချိန် video-grid ဖြစ်မည်) -->
+        <!-- Container (Model List ချိန် model-grid, Video List ချိန် video-grid သုံးမည်) -->
         <div id="videoContainer" class="model-grid">
             <div class="status-msg" style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Loading...</div>
         </div>
@@ -44,9 +44,8 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // checkPageAndRender ကို Overwrite လုပ်ပြီး model.html အတွက် သီးသန့် အလုပ်လုပ်စေခြင်း
         window.addEventListener('DOMContentLoaded', () => {
-            // app.js မှ loadDataFromWorker ပြီးဆုံးချိန်တွင် ခေါ်ဆောင်ရန် သို့မဟုတ် ဒေတာစောင့်ဆိုင်းရန်
+            // app.js မှ loadDataFromWorker ဒေတာဆွဲယူပြီးချိန်တွင် render လုပ်ရန်
             setTimeout(() => {
                 renderModelPageContent();
             }, 500);
@@ -59,10 +58,9 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const selectedModel = urlParams.get('model');
-
             const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-            // VIP ဖယ်ထုတ်ရန် (အကောင့်မဝင်ထားလျှင်)
+            // VIP ဗီဒီယိုများကို အကောင့်မဝင်ထားလျှင် ဖယ်ထုတ်မည်
             const availableVideos = (typeof videoData !== 'undefined' ? videoData : []).filter(v => {
                 if (!isLoggedIn && v.isVip) return false;
                 return true;
@@ -109,7 +107,7 @@
                     if (mName && !modelMap[mName]) {
                         modelMap[mName] = {
                             name: mName,
-                            image: mImg || v.thumbnail,
+                            image: mImg,
                             count: 0
                         };
                     }
@@ -135,6 +133,7 @@
                         }
                     });
 
+                    // Model Thumbnail အတွက် မူလ logic အတိုင်း ထည့်သွင်းခြင်း
                     const imgTag = m.image 
                         ? `<img src="${m.image}" alt="${m.name}" loading="lazy" onerror="this.outerHTML='<div class=\'model-placeholder\'>No Image</div>'">`
                         : `<div class="model-placeholder">No Image</div>`;
