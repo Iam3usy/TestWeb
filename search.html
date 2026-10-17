@@ -45,7 +45,7 @@
             gap: 8px;
         }
 
-        /* 1. Model Layout -> 3 Columns Grid */
+        /* Model -> 3 Columns Grid */
         .model-grid-3col {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -54,7 +54,7 @@
             grid-column: 1 / -1;
         }
 
-        /* 2. Category Layout -> 3 Columns Grid */
+        /* Category -> 3 Columns Grid */
         .category-grid-3col {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -63,7 +63,7 @@
             grid-column: 1 / -1;
         }
 
-        /* 3. Video Layout -> 2 Columns Grid */
+        /* Video -> 2 Columns Grid */
         .video-grid-2col {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -132,7 +132,7 @@
 </head>
 <body>
 
-    <!-- Sidebar Navigation (မူလ CSS Class နာမည်များအတိုင်း) -->
+    <!-- Sidebar Navigation -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-play-circle"></i> My Hub</span>
@@ -198,7 +198,7 @@
                     document.getElementById('searchInput').value = categoryParam;
                 }
                 handleSearch();
-            }, 500);
+            }, 600);
         });
 
         function handleSearch() {
@@ -208,75 +208,72 @@
             if (!searchInput || !container) return;
 
             const query = searchInput.value.toLowerCase().trim();
-
-            const rawModelData = (typeof modelData !== 'undefined' && Array.isArray(modelData)) ? modelData : [];
-            const rawCategoryData = (typeof categoryData !== 'undefined' && Array.isArray(categoryData)) ? categoryData : [];
             const safeVideoData = (typeof videoData !== 'undefined' && Array.isArray(videoData)) ? videoData : [];
+
+            if (safeVideoData.length === 0) {
+                container.innerHTML = '<p style="color:#e50914; text-align:center; padding:30px;">ဒေတာများ ဆွဲယူနေဆဲဖြစ်ပါသည်...</p>';
+                return;
+            }
 
             const isLoggedIn = checkUserLoggedIn();
 
-            // အကောင့်မဝင်ထားလျှင် VIP ဗီဒီယိုများကို ဖြတ်ထုတ်မည်
+            // အကောင့်မဝင်ထားလျှင် VIP များကို ဖြတ်ထုတ်မည်
             const filteredVideoData = safeVideoData.filter(v => {
                 const isVipVideo = v.isVip || v.is_vip === true || String(v.is_vip) === 'true';
                 if (!isLoggedIn && isVipVideo) return false;
                 return true;
             });
 
-            // Model Data ကို Dynamic ဆွဲထုတ်ပေးခြင်း
-            let finalModelData = [...rawModelData];
-            if (finalModelData.length === 0) {
-                const modelMap = {};
-                filteredVideoData.forEach(v => {
-                    const mName = v.model || v.model_name;
-                    if (mName && mName.trim() !== '') {
-                        const nameTrim = mName.trim();
-                        if (!modelMap[nameTrim]) {
-                            modelMap[nameTrim] = {
-                                name: nameTrim,
-                                image: v.model_image || v.image || v.thumbnail || '',
-                                count: 1
-                            };
-                        } else {
-                            modelMap[nameTrim].count++;
-                        }
+            // ၁။ videoData ထဲမှ Model များကို အလိုအလျောက် စုစည်းထုတ်ယူခြင်း
+            const modelMap = {};
+            filteredVideoData.forEach(v => {
+                const mName = v.model || v.model_name;
+                if (mName && mName.trim() !== '') {
+                    const nameTrim = mName.trim();
+                    if (!modelMap[nameTrim]) {
+                        modelMap[nameTrim] = {
+                            name: nameTrim,
+                            image: v.model_image || v.image || v.thumbnail || '',
+                            count: 1
+                        };
+                    } else {
+                        modelMap[nameTrim].count++;
                     }
-                });
-                finalModelData = Object.values(modelMap);
-            }
+                }
+            });
+            const extractedModels = Object.values(modelMap);
 
-            // Category Data ကို Dynamic ဆွဲထုတ်ပေးခြင်း
-            let finalCategoryData = [...rawCategoryData];
-            if (finalCategoryData.length === 0) {
-                const catMap = {};
-                filteredVideoData.forEach(v => {
-                    const cName = v.category || v.category_name;
-                    if (cName && cName.trim() !== '') {
-                        const nameTrim = cName.trim();
-                        if (!catMap[nameTrim]) {
-                            catMap[nameTrim] = {
-                                name: nameTrim,
-                                image: v.category_image || v.image || v.thumbnail || '',
-                                count: 1
-                            };
-                        } else {
-                            catMap[nameTrim].count++;
-                        }
+            // ၂။ videoData ထဲမှ Category များကို အလိုအလျောက် စုစည်းထုတ်ယူခြင်း
+            const catMap = {};
+            filteredVideoData.forEach(v => {
+                const cName = v.category || v.category_name;
+                if (cName && cName.trim() !== '') {
+                    const nameTrim = cName.trim();
+                    if (!catMap[nameTrim]) {
+                        catMap[nameTrim] = {
+                            name: nameTrim,
+                            image: v.category_image || v.image || v.thumbnail || '',
+                            count: 1
+                        };
+                    } else {
+                        catMap[nameTrim].count++;
                     }
-                });
-                finalCategoryData = Object.values(catMap);
-            }
+                }
+            });
+            const extractedCategories = Object.values(catMap);
 
             let matchedModels = [];
             let matchedCategories = [];
             let matchedVideos = [];
 
             if (!query) {
-                matchedModels = finalModelData;
-                matchedCategories = finalCategoryData;
+                // ဘာမှမရှာရသေးလျှင် အကုန်ပြမည်
+                matchedModels = extractedModels;
+                matchedCategories = extractedCategories;
                 matchedVideos = [];
             } else {
-                matchedModels = finalModelData.filter(m => (m.name || m.model_name || '').toLowerCase().includes(query));
-                matchedCategories = finalCategoryData.filter(c => (c.name || c.category_name || '').toLowerCase().includes(query));
+                matchedModels = extractedModels.filter(m => m.name.toLowerCase().includes(query));
+                matchedCategories = extractedCategories.filter(c => c.name.toLowerCase().includes(query));
                 matchedVideos = filteredVideoData.filter(v => {
                     const title = (v.title || '').toLowerCase();
                     const modelField = (v.model || v.model_name || '').toLowerCase();
@@ -304,9 +301,9 @@
                 
                 let modelHtml = `<div class="model-grid-3col">`;
                 matchedModels.forEach(model => {
-                    const name = model.name || model.model_name || 'Model';
-                    const displayImg = (model.image && model.image.trim() !== '') ? model.image : 'https://via.placeholder.com/150';
-                    const count = model.count || 0;
+                    const name = model.name;
+                    const displayImg = model.image || 'https://via.placeholder.com/150';
+                    const count = model.count;
 
                     modelHtml += `
                         <a href="model.html?model=${encodeURIComponent(name)}" class="search-card">
@@ -334,9 +331,9 @@
                 
                 let catHtml = `<div class="category-grid-3col">`;
                 matchedCategories.forEach(cat => {
-                    const name = cat.name || cat.category_name || 'Category';
-                    const displayImg = (cat.image && cat.image.trim() !== '') ? cat.image : 'https://via.placeholder.com/150';
-                    const count = cat.count || 0;
+                    const name = cat.name;
+                    const displayImg = cat.image || 'https://via.placeholder.com/150';
+                    const count = cat.count;
 
                     catHtml += `
                         <a href="category.html?category=${encodeURIComponent(name)}" class="search-card">
