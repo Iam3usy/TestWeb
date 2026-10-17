@@ -171,7 +171,6 @@
             if (sidebar) sidebar.classList.toggle('open');
         }
 
-        // အကောင့်ဝင်ထားခြင်း ရှိမရှိ စစ်ဆေးသည့် Helper function (localStorage သို့မဟုတ် app.js ကစနစ်ကို ညှိသုံးနိုင်သည်)
         function checkUserLoggedIn() {
             const user = localStorage.getItem('currentUser') || localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
             return user !== null && user !== 'false' && user !== '';
@@ -185,17 +184,19 @@
                 loadDataFromWorker();
             }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const modelParam = urlParams.get('model');
-            const categoryParam = urlParams.get('category');
-            
-            if (modelParam) {
-                document.getElementById('searchInput').value = modelParam;
-                setTimeout(handleSearch, 300);
-            } else if (categoryParam) {
-                document.getElementById('searchInput').value = categoryParam;
-                setTimeout(handleSearch, 300);
-            }
+            // Data များ ရောက်အောင် ခဏစောင့်ပြီး ရှာဖွေမှုပြုလုပ်မည်
+            setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const modelParam = urlParams.get('model');
+                const categoryParam = urlParams.get('category');
+                
+                if (modelParam) {
+                    document.getElementById('searchInput').value = modelParam;
+                } else if (categoryParam) {
+                    document.getElementById('searchInput').value = categoryParam;
+                }
+                handleSearch();
+            }, 500);
         });
 
         function handleSearch() {
@@ -205,56 +206,90 @@
             if (!searchInput || !container) return;
 
             const query = searchInput.value.toLowerCase().trim();
-            
-            if (!query) {
-                container.innerHTML = '';
-                return;
-            }
 
-            const safeModelData = (typeof modelData !== 'undefined' && Array.isArray(modelData)) ? modelData : [];
-            const safeCategoryData = (typeof categoryData !== 'undefined' && Array.isArray(categoryData)) ? categoryData : [];
+            const rawModelData = (typeof modelData !== 'undefined' && Array.isArray(modelData)) ? modelData : [];
+            const rawCategoryData = (typeof categoryData !== 'undefined' && Array.isArray(categoryData)) ? categoryData : [];
             const safeVideoData = (typeof videoData !== 'undefined' && Array.isArray(videoData)) ? videoData : [];
 
-            if (safeModelData.length === 0 && safeVideoData.length === 0 && safeCategoryData.length === 0) {
-                container.innerHTML = '<p style="color:#e50914; text-align:center; padding:30px;">ဒေတာများ ဆွဲယူနေဆဲဖြစ်ပါသည် (သို့) လိုင်းမကောင်းပါ။ ခဏစောင့်ပေးပါ။</p>';
-                return;
-            }
-
-            // အကောင့်ဝင်ထားခြင်း ရှိမရှိ စစ်ဆေးခြင်း
             const isLoggedIn = checkUserLoggedIn();
 
-            // ၁။ Model ရှာဖွေခြင်း
-            const matchedModels = safeModelData.filter(model => {
-                const modelName = (model.name || model.model_name || '').toLowerCase();
-                return modelName.includes(query);
+            // videoData ထဲမှ အကောင့်မဝင်ထားလျှင် VIP များကို ဖြတ်ထုတ်မည်
+            const filteredVideoData = safeVideoData.filter(v => {
+                const isVipVideo = v.isVip || v.is_vip === true || String(v.is_vip) === 'true';
+                if (!isLoggedIn && isVipVideo) return false;
+                return true;
             });
 
-            // ၂။ Category ရှာဖွေခြင်း
-            const matchedCategories = safeCategoryData.filter(cat => {
-                const catName = (cat.name || cat.category_name || '').toLowerCase();
-                return catName.includes(query);
-            });
+            // ၁။ Model Data မရှိခဲ့ပါက VideoData ထဲမှ Dynamic ပြန်ဆွဲထုတ်ပေးခြင်း
+            let finalModelData = [...rawModelData];
+            if (finalModelData.length === 0) {
+                const modelMap = {};
+                filteredVideoData.forEach(v => {
+                    const mName = v.model || v.model_name;
+                    if (mName && mName.trim() !== '') {
+                        const nameTrim = mName.trim();
+                        if (!modelMap[nameTrim]) {
+                            modelMap[nameTrim] = {
+                                name: nameTrim,
+                                image: v.model_image || v.image || v.thumbnail || '',
+                                count: 1
+                            };
+                        } else {
+                            modelMap[nameTrim].count++;
+                        }
+                    }
+                });
+                finalModelData = Object.values(modelMap);
+            }
 
-            // ၃။ Video ရှာဖွေခြင်း (အကောင့်မဝင်ထားလျှင် VIP/is_vip များကို ဖြတ်ထုတ်မည်၊ ဝင်ထားမှသာ အကုန်ပြမည်)
-            const matchedVideos = safeVideoData.filter(video => {
-                // VIP စစ်ဆေးချက် (is_vip သို့မဟုတ် vip flag ပါလျှင်)
-                const isVipVideo = video.isVip || video.is_vip === true || String(video.is_vip) === 'true';
-                
-                if (!isLoggedIn && isVipVideo) {
-                    return false; // အကောင့်မရှိရင် VIP ကားတွေကို ရှာမတွေ့စေရ
-                }
+            // ၂။ Category Data မရှိခဲ့ပါက VideoData ထဲမှ Dynamic ပြန်ဆွဲထုတ်ပေးခြင်း
+            let finalCategoryData = [...rawCategoryData];
+            if (finalCategoryData.length === 0) {
+                const catMap = {};
+                filteredVideoData.forEach(v => {
+                    const cName = v.category || v.category_name;
+                    if (cName && cName.trim() !== '') {
+                        const nameTrim = cName.trim();
+                        if (!catMap[nameTrim]) {
+                            catMap[nameTrim] = {
+                                name: nameTrim,
+                                image: v.category_image || v.image || v.thumbnail || '',
+                                count: 1
+                            };
+                        } else {
+                            catMap[nameTrim].count++;
+                        }
+                    }
+                });
+                finalCategoryData = Object.values(catMap);
+            }
 
-                const title = (video.title || '').toLowerCase();
-                const modelField = (video.model || '').toLowerCase();
-                const catField = (video.category || '').toLowerCase();
-                const fileId = String(video.file_id || '').toLowerCase();
-                
-                return title.includes(query) || modelField.includes(query) || catField.includes(query) || fileId.includes(query);
-            });
+            // Filter လုပ်ခြင်း
+            let matchedModels = [];
+            let matchedCategories = [];
+            let matchedVideos = [];
+
+            if (!query) {
+                // ဘာမှမရှာရသေးလျှင် Model နှင့် Category များကို အကုန်ပြပေးမည်
+                matchedModels = finalModelData;
+                matchedCategories = finalCategoryData;
+                matchedVideos = [];
+            } else {
+                matchedModels = finalModelData.filter(m => (m.name || m.model_name || '').toLowerCase().includes(query));
+                matchedCategories = finalCategoryData.filter(c => (c.name || c.category_name || '').toLowerCase().includes(query));
+                matchedVideos = filteredVideoData.filter(v => {
+                    const title = (v.title || '').toLowerCase();
+                    const modelField = (v.model || v.model_name || '').toLowerCase();
+                    const catField = (v.category || v.category_name || '').toLowerCase();
+                    const fileId = String(v.file_id || '').toLowerCase();
+                    
+                    return title.includes(query) || modelField.includes(query) || catField.includes(query) || fileId.includes(query);
+                });
+            }
 
             container.innerHTML = '';
 
-            if (matchedModels.length === 0 && matchedCategories.length === 0 && matchedVideos.length === 0) {
+            if (query && matchedModels.length === 0 && matchedCategories.length === 0 && matchedVideos.length === 0) {
                 container.innerHTML = '<p style="color:#888; text-align:center; padding:40px;">ရှာဖွေမှု ရလဒ် မရှိပါ။</p>';
                 return;
             }
