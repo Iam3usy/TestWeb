@@ -304,12 +304,12 @@ async function loadCategoryPageData() {
         const response = await fetch(SCRIPT_API_URL);
         const data = await response.json();
         if (Array.isArray(data)) {
+            // Title မပါတာတွေနဲ့ file_id မရှိတာတွေကို ဖယ်ထုတ်ပြီး ကော်လံ E (category) ကို သုံးမည်
             const allVideos = data
                 .filter(item => item && cleanText(item.title) !== '' && item.file_id)
                 .map(item => ({
                     title: cleanText(item.title),
-                    category_name: item.category_name ? String(item.category_name).trim() : (item.category ? String(item.category).trim() : ''),
-                    category: item.category ? String(item.category).trim() : '',
+                    category: item.category ? String(item.category).trim() : '', // ကော်လံ E (Category) ကို သီးသန့်ယူသည်
                     category_image: item.category_image ? String(item.category_image).trim() : '',
                     thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
                     file_id: item.file_id ? String(item.file_id).trim() : '',
@@ -350,11 +350,12 @@ function renderCategoriesAtoZ(videos) {
     container.innerHTML = '';
 
     const categoryMap = new Map();
+
+    // 1st Pass: ကော်လံ E (v.category) မှ ကေတဂရီနာမည်များကို စုဆောင်းခြင်း
     videos.forEach(v => {
-        let catName = v.category_name || v.category;
-        if (catName) {
-            catName.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
-                let lowerKey = name.toLowerCase().trim();
+        if (v.category) {
+            v.category.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+                let lowerKey = name.toLowerCase();
                 if (!categoryMap.has(lowerKey)) {
                     categoryMap.set(lowerKey, { name, image: v.category_image || '', count: 0 });
                 } else {
@@ -365,12 +366,14 @@ function renderCategoriesAtoZ(videos) {
         }
     });
 
+    // 2nd Pass: ကော်လံ E (v.category) တွင် ပါဝင်မှုအလိုက် Count တိုးပေးခြင်း
     videos.forEach(v => {
-        let catValue = v.category || v.category_name;
-        if (catValue) {
-            let vCategories = catValue.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
+        if (v.category) {
+            let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
             categoryMap.forEach((cObj, lowerKey) => {
-                if (vCategories.includes(lowerKey)) cObj.count++;
+                if (vCategories.includes(lowerKey)) {
+                    cObj.count++;
+                }
             });
         }
     });
@@ -406,9 +409,8 @@ function renderVideosForCategory(selectedCategory, videos) {
 
     const decodedCategory = decodeURIComponent(selectedCategory).trim().toLowerCase();
     const matchedVideos = videos.filter(v => {
-        let catValue = v.category || v.category_name;
-        if (!catValue) return false;
-        let vCategories = catValue.split(',').map(n => n.trim().toLowerCase());
+        if (!v.category) return false;
+        let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
         return vCategories.includes(decodedCategory);
     });
 
@@ -429,6 +431,7 @@ function renderVideosForCategory(selectedCategory, videos) {
         `;
     });
 }
+
 
 // Search Page
 async function loadSearchPageData() {
