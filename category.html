@@ -98,17 +98,17 @@
 
             const categoryMap = new Map();
 
+// ၁။ Category နာမည်စာရင်းများကို ကတ်ပြားအဖြစ် ထုတ်ရန် စုစည်းခြင်း (Count ကို 0 ဖြင့် စမည်)
 videos.forEach(v => {
     if (v.category_name) {
         let names = v.category_name.split(',').map(n => n.trim()).filter(n => n !== '');
         names.forEach(name => {
             let lowerKey = name.toLowerCase().trim();
-            
             if (!categoryMap.has(lowerKey)) {
                 categoryMap.set(lowerKey, {
                     name: name,
                     image: v.category_image || 'https://via.placeholder.com/150',
-                    count: 0
+                    count: 0 // လုံးဝ မပေါင်းရသေးဘဲ 0 မှ စမည်
                 });
             } else {
                 let c = categoryMap.get(lowerKey);
@@ -119,6 +119,19 @@ videos.forEach(v => {
         });
     }
 });
+
+// ၂။ ဗီဒီယိုဇယား (Column E) ထဲတွင် ဤ Category ပါဝင်သည့် အကြိမ်ရေကိုသာ အမှန်တကလိုက် ရေတွက်ခြင်း
+videos.forEach(v => {
+    if (v.category) {
+        let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
+        categoryMap.forEach((cObj, lowerKey) => {
+            if (vCategories.includes(lowerKey)) {
+                cObj.count++; // ဗီဒီယိုထဲမှာ တွေ့မှသာ count 1 တိုးမည်
+            }
+        });
+    }
+});
+
 
 videos.forEach(v => {
     if (v.category) {
