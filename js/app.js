@@ -270,7 +270,8 @@ function renderVideosForModel(selectedModel, videos) {
     });
 }
 
-// Category Page
+
+// Category Page Data Load
 async function loadCategoryPageData() {
     const urlParams = new URLSearchParams(window.location.search);
     const selectedCategory = urlParams.get('category');
@@ -296,22 +297,24 @@ async function loadCategoryPageData() {
                 const cContainer = document.getElementById('categoryContainer');
                 const vContainer = document.getElementById('videoContainer');
                 if (cContainer) cContainer.style.display = 'none';
-                if (vContainer) vContainer.style.display = 'grid';
+                if (vContainer) {
+                    vContainer.style.display = 'grid';
+                    vContainer.className = 'video-grid';
+                }
                 renderVideosForCategory(selectedCategory, allVideos);
             } else {
                 const vContainer = document.getElementById('videoContainer');
                 const cContainer = document.getElementById('categoryContainer');
                 if (vContainer) vContainer.style.display = 'none';
-                if (cContainer) cContainer.style.display = 'grid';
+                if (cContainer) {
+                    cContainer.style.display = 'grid';
+                    cContainer.className = 'model-grid'; // CSS ထဲက model-grid ကို သုံးရန်
+                }
                 renderCategoriesAtoZ(allVideos);
             }
         }
     } catch (err) {
         console.error("Category Fetch Error:", err);
-        const cContainer = document.getElementById('categoryContainer');
-        if (cContainer) {
-            cContainer.innerHTML = '<p class="empty-msg" style="color:#ff4d4d;">ဒေတာဆွဲယူရာတွင် အမှားအယွင်းရှိသည်။</p>';
-        }
     }
 }
 
@@ -355,15 +358,13 @@ function renderCategoriesAtoZ(videos) {
     categoriesList.forEach(c => {
         const imageSrc = c.image && !c.image.includes('placeholder') ? c.image : '';
         container.innerHTML += `
-            <a href="category.html?category=${encodeURIComponent(c.name)}" class="video-card">
-                <div class="thumbnail-box" style="position:relative; width:100%; height:130px; background:#000; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                    <img src="${imageSrc}" alt="${c.name}" style="display:${imageSrc ? 'block' : 'none'}; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="model-fallback-icon" style="display:${imageSrc ? 'none' : 'flex'}; position:absolute; top:0; left:0; width:100%; height:100%; align-items:center; justify-content:center; color:var(--primary-color, #e91e63); font-size:30px; background:#111;"><i class="fa-solid fa-hashtag"></i></div>
-                    <span class="view-badge" style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;">${c.count}</span>
+            <a href="category.html?category=${encodeURIComponent(c.name)}" class="model-card">
+                <div class="model-img-container">
+                    <img src="${imageSrc}" alt="${c.name}" style="display:${imageSrc ? 'block' : 'none'};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="model-placeholder" style="display:${imageSrc ? 'none' : 'flex'};"><i class="fa-solid fa-hashtag"></i></div>
+                    <span class="video-count-badge"><i class="fa-solid fa-hashtag"></i> ${c.count}</span>
                 </div>
-                <div class="video-info" style="padding:8px 5px; text-align:center;">
-                    <h3 style="font-size:11px; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.name}</h3>
-                </div>
+                <div class="model-name">${c.name}</div>
             </a>
         `;
     });
@@ -390,18 +391,147 @@ function renderVideosForCategory(selectedCategory, videos) {
     matchedVideos.forEach(v => {
         container.innerHTML += `
             <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
-                <div class="thumbnail-box" style="position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow:hidden;">
-                    <video src="${v.thumbnail}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; display:block;"></video>
-                    <span class="view-badge" style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#ff3366; font-size:11px; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-eye"></i> ${v.views}</span>
+                <div class="thumbnail-box">
+                    <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
+                    <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
                 </div>
-                <div class="video-info" style="padding:10px 8px;">
-                    <h3 style="font-size:12px; font-weight:600; color:#fff; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</h3>
-                </div>
+                <div class="video-info"><h3>${v.title}</h3></div>
             </div>
         `;
     });
 }
 
+// Model Page Data Load (Model အတွက်ပါ CSS Class များကို ပုံစံတူ သုံးပေးရန်)
+async function loadModelPageData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedModel = urlParams.get('model');
+    const pageTitle = document.getElementById('pageTitle');
+    if (selectedModel && pageTitle) pageTitle.innerText = selectedModel;
+
+    try {
+        const response = await fetch(SCRIPT_API_URL);
+        const data = await response.json();
+        if (Array.isArray(data)) {
+            const allVideos = data.map(item => ({
+                title: item.title ? String(item.title).trim() : '',
+                model_name: item.model_name ? String(item.model_name).trim() : (item.model ? String(item.model).trim() : ''),
+                model: item.model ? String(item.model).trim() : '',
+                model_image: item.model_image ? String(item.model_image).trim() : '',
+                thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
+                file_id: item.file_id ? String(item.file_id).trim() : '',
+                stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
+                views: item.views || 0
+            }));
+
+            if (selectedModel) {
+                const mContainer = document.getElementById('modelContainer');
+                const vContainer = document.getElementById('videoContainer');
+                if (mContainer) mContainer.style.display = 'none';
+                if (vContainer) {
+                    vContainer.style.display = 'grid';
+                    vContainer.className = 'video-grid';
+                }
+                renderVideosForModel(selectedModel, allVideos);
+            } else {
+                const vContainer = document.getElementById('videoContainer');
+                const mContainer = document.getElementById('modelContainer');
+                if (vContainer) vContainer.style.display = 'none';
+                if (mContainer) {
+                    mContainer.style.display = 'grid';
+                    mContainer.className = 'model-grid';
+                }
+                renderModelsAtoZ(allVideos);
+            }
+        }
+    } catch (err) {
+        console.error("Model Fetch Error:", err);
+    }
+}
+
+function renderModelsAtoZ(videos) {
+    const container = document.getElementById('modelContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const modelMap = new Map();
+    videos.forEach(v => {
+        let mName = v.model_name || v.model;
+        if (mName) {
+            mName.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+                let lowerKey = name.toLowerCase().trim();
+                if (!modelMap.has(lowerKey)) {
+                    modelMap.set(lowerKey, { name, image: v.model_image || '', count: 0 });
+                } else {
+                    let m = modelMap.get(lowerKey);
+                    if ((!m.image || m.image.includes('placeholder')) && v.model_image) m.image = v.model_image;
+                }
+            });
+        }
+    });
+
+    videos.forEach(v => {
+        let mValue = v.model || v.model_name;
+        if (mValue) {
+            let vModels = mValue.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
+            modelMap.forEach((mObj, lowerKey) => {
+                if (vModels.includes(lowerKey)) mObj.count++;
+            });
+        }
+    });
+
+    const modelsList = Array.from(modelMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+    if (modelsList.length === 0) {
+        container.innerHTML = '<p class="empty-msg">Model ဒေတာ မရှိသေးပါ။</p>';
+        return;
+    }
+
+    modelsList.forEach(m => {
+        const imageSrc = m.image && !m.image.includes('placeholder') ? m.image : '';
+        container.innerHTML += `
+            <a href="model.html?model=${encodeURIComponent(m.name)}" class="model-card">
+                <div class="model-img-container">
+                    <img src="${imageSrc}" alt="${m.name}" style="display:${imageSrc ? 'block' : 'none'};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="model-placeholder" style="display:${imageSrc ? 'none' : 'flex'};"><i class="fa-solid fa-venus"></i></div>
+                    <span class="video-count-badge"><i class="fa-solid fa-eye"></i> ${m.count}</span>
+                </div>
+                <div class="model-name">${m.name}</div>
+            </a>
+        `;
+    });
+}
+
+function renderVideosForModel(selectedModel, videos) {
+    const container = document.getElementById('videoContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
+    const matchedVideos = videos.filter(v => {
+        let mValue = v.model || v.model_name;
+        if (!mValue) return false;
+        let vModels = mValue.split(',').map(n => n.trim().toLowerCase());
+        return vModels.includes(decodedModel);
+    });
+
+    if (matchedVideos.length === 0) {
+        container.innerHTML = `<p class="empty-msg" style="grid-column:1/-1; text-align:center; padding:30px;">"${selectedModel}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
+        return;
+    }
+
+    matchedVideos.forEach(v => {
+        container.innerHTML += `
+            <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
+                <div class="thumbnail-box">
+                    <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
+                    <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
+                </div>
+                <div class="video-info"><h3>${v.title}</h3></div>
+            </div>
+        `;
+    });
+}
+
+    
 
 // Search Page
 async function loadSearchPageData() {
