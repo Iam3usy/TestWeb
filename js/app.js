@@ -283,7 +283,7 @@ async function loadCategoryPageData() {
         if (Array.isArray(data)) {
             const allVideos = data.map(item => ({
                 title: item.title ? String(item.title).trim() : '',
-                category_name: item.category_name ? String(item.category_name).trim() : '',
+                category_name: item.category_name ? String(item.category_name).trim() : (item.category ? String(item.category).trim() : ''),
                 category: item.category ? String(item.category).trim() : '',
                 category_image: item.category_image ? String(item.category_image).trim() : '',
                 thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
@@ -293,17 +293,25 @@ async function loadCategoryPageData() {
             }));
 
             if (selectedCategory) {
-                document.getElementById('categoryContainer').style.display = 'none';
-                document.getElementById('videoContainer').style.display = 'grid';
+                const cContainer = document.getElementById('categoryContainer');
+                const vContainer = document.getElementById('videoContainer');
+                if (cContainer) cContainer.style.display = 'none';
+                if (vContainer) vContainer.style.display = 'grid';
                 renderVideosForCategory(selectedCategory, allVideos);
             } else {
-                document.getElementById('videoContainer').style.display = 'none';
-                document.getElementById('categoryContainer').style.display = 'grid';
+                const vContainer = document.getElementById('videoContainer');
+                const cContainer = document.getElementById('categoryContainer');
+                if (vContainer) vContainer.style.display = 'none';
+                if (cContainer) cContainer.style.display = 'grid';
                 renderCategoriesAtoZ(allVideos);
             }
         }
     } catch (err) {
         console.error("Category Fetch Error:", err);
+        const cContainer = document.getElementById('categoryContainer');
+        if (cContainer) {
+            cContainer.innerHTML = '<p class="empty-msg" style="color:#ff4d4d;">ဒေတာဆွဲယူရာတွင် အမှားအယွင်းရှိသည်။</p>';
+        }
     }
 }
 
@@ -314,8 +322,9 @@ function renderCategoriesAtoZ(videos) {
 
     const categoryMap = new Map();
     videos.forEach(v => {
-        if (v.category_name) {
-            v.category_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+        let catName = v.category_name || v.category;
+        if (catName) {
+            catName.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
                 let lowerKey = name.toLowerCase().trim();
                 if (!categoryMap.has(lowerKey)) {
                     categoryMap.set(lowerKey, { name, image: v.category_image || '', count: 0 });
@@ -328,8 +337,9 @@ function renderCategoriesAtoZ(videos) {
     });
 
     videos.forEach(v => {
-        if (v.category) {
-            let vCategories = v.category.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
+        let catValue = v.category || v.category_name;
+        if (catValue) {
+            let vCategories = catValue.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
             categoryMap.forEach((cObj, lowerKey) => {
                 if (vCategories.includes(lowerKey)) cObj.count++;
             });
@@ -346,11 +356,14 @@ function renderCategoriesAtoZ(videos) {
         const imageSrc = c.image && !c.image.includes('placeholder') ? c.image : '';
         container.innerHTML += `
             <a href="category.html?category=${encodeURIComponent(c.name)}" class="video-card">
-                <div class="thumbnail-box">
-                    <img src="${imageSrc}" alt="${c.name}" style="display:${imageSrc ? 'block' : 'none'}; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none';">
-                    <span class="view-badge">${c.count}</span>
+                <div class="thumbnail-box" style="position:relative; width:100%; height:130px; background:#000; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                    <img src="${imageSrc}" alt="${c.name}" style="display:${imageSrc ? 'block' : 'none'}; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="model-fallback-icon" style="display:${imageSrc ? 'none' : 'flex'}; position:absolute; top:0; left:0; width:100%; height:100%; align-items:center; justify-content:center; color:var(--primary-color, #e91e63); font-size:30px; background:#111;"><i class="fa-solid fa-hashtag"></i></div>
+                    <span class="view-badge" style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:4px;">${c.count}</span>
                 </div>
-                <div class="video-info"><h3>${c.name}</h3></div>
+                <div class="video-info" style="padding:8px 5px; text-align:center;">
+                    <h3 style="font-size:11px; margin:0; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.name}</h3>
+                </div>
             </a>
         `;
     });
@@ -363,28 +376,32 @@ function renderVideosForCategory(selectedCategory, videos) {
 
     const decodedCategory = decodeURIComponent(selectedCategory).trim().toLowerCase();
     const matchedVideos = videos.filter(v => {
-        if (!v.category) return false;
-        let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
+        let catValue = v.category || v.category_name;
+        if (!catValue) return false;
+        let vCategories = catValue.split(',').map(n => n.trim().toLowerCase());
         return vCategories.includes(decodedCategory);
     });
 
     if (matchedVideos.length === 0) {
-        container.innerHTML = `<p class="empty-msg">"${selectedCategory}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
+        container.innerHTML = `<p class="empty-msg" style="grid-column:1/-1; text-align:center; padding:30px;">"${selectedCategory}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
         return;
     }
 
     matchedVideos.forEach(v => {
         container.innerHTML += `
             <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
-                <div class="thumbnail-box">
-                    <video src="${v.thumbnail}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>
-                    <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
+                <div class="thumbnail-box" style="position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow:hidden;">
+                    <video src="${v.thumbnail}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+                    <span class="view-badge" style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#ff3366; font-size:11px; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-eye"></i> ${v.views}</span>
                 </div>
-                <div class="video-info"><h3>${v.title}</h3></div>
+                <div class="video-info" style="padding:10px 8px;">
+                    <h3 style="font-size:12px; font-weight:600; color:#fff; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</h3>
+                </div>
             </div>
         `;
     });
 }
+
 
 // Search Page
 async function loadSearchPageData() {
