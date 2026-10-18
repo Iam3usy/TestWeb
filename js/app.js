@@ -517,22 +517,17 @@ function handleSearch() {
 
     let htmlContent = '';
 
-    // Model Section (Model Page လိုပဲ model-grid နှင့် model-card ကို သုံးရန်)
+        // Model Section (ရှိပြီးသား .model-grid နှင့် .model-card ကို တိုက်ရိုက်သုံးရန်)
     if (matchedModels.length > 0) {
-        htmlContent += `
-            <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Model</h3>
-            <div class="model-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0;">
-        `;
+        htmlContent += `<h3 class="search-section-title" style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Model</h3><div class="model-grid">`;
         matchedModels.forEach(m => {
             const hasValidImage = m.image && !m.image.includes('placeholder');
             const imageSrc = hasValidImage ? m.image : '';
             htmlContent += `
                 <a href="model.html?model=${encodeURIComponent(m.name)}" class="model-card">
                     <div class="model-img-container">
-                        <img src="${imageSrc}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover; display:${imageSrc ? 'block' : 'none'};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="model-placeholder" style="width:100%; height:100%; background:#222; display:${imageSrc ? 'none' : 'flex'}; align-items:center; justify-content:center; color:#777; font-size:24px;">
-                            <i class="fa-solid fa-venus"></i>
-                        </div>
+                        <img src="${imageSrc}" alt="${m.name}" style="display:${imageSrc ? 'block' : 'none'}; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="model-placeholder" style="display:${imageSrc ? 'none' : 'flex'};"><i class="fa-solid fa-venus"></i></div>
                         <span class="video-count-badge"><i class="fa-solid fa-eye"></i> ${m.count}</span>
                     </div>
                     <div class="model-name">${m.name}</div>
@@ -542,22 +537,17 @@ function handleSearch() {
         htmlContent += `</div>`;
     }
 
-    // Category Section (Model/Category Page လိုပဲ ပုံစံတူ သုံးရန်)
+    // Category Section (ရှိပြီးသား .model-grid နှင့် .model-card ကို တိုက်ရိုက်သုံးရန်)
     if (matchedCategories.length > 0) {
-        htmlContent += `
-            <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Category</h3>
-            <div class="model-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0;">
-        `;
+        htmlContent += `<h3 class="search-section-title" style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Category</h3><div class="model-grid">`;
         matchedCategories.forEach(c => {
             const hasValidImage = c.image && !c.image.includes('placeholder');
             const imageSrc = hasValidImage ? c.image : '';
             htmlContent += `
                 <a href="category.html?category=${encodeURIComponent(c.name)}" class="model-card">
                     <div class="model-img-container">
-                        <img src="${imageSrc}" alt="${c.name}" style="width:100%; height:100%; object-fit:cover; display:${imageSrc ? 'block' : 'none'};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="model-placeholder" style="width:100%; height:100%; background:#222; display:${imageSrc ? 'none' : 'flex'}; align-items:center; justify-content:center; color:#777; font-size:24px;">
-                            <i class="fa-solid fa-hashtag"></i>
-                        </div>
+                        <img src="${imageSrc}" alt="${c.name}" style="display:${imageSrc ? 'block' : 'none'}; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="model-placeholder" style="display:${imageSrc ? 'none' : 'flex'};"><i class="fa-solid fa-hashtag"></i></div>
                         <span class="video-count-badge"><i class="fa-solid fa-hashtag"></i> ${c.count}</span>
                     </div>
                     <div class="model-name">${c.name}</div>
@@ -567,12 +557,9 @@ function handleSearch() {
         htmlContent += `</div>`;
     }
 
-    // Video Section
+    // Video Section (ရှိပြီးသား .video-grid နှင့် .video-card ကို တိုက်ရိုက်သုံးရန်)
     if (matchedVideos.length > 0) {
-        htmlContent += `
-            <h3 style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Video</h3>
-            <div class="video-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0;">
-        `;
+        htmlContent += `<h3 class="search-section-title" style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Video</h3><div class="video-grid">`;
         matchedVideos.forEach(v => {
             htmlContent += `
                 <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
@@ -586,6 +573,7 @@ function handleSearch() {
         });
         htmlContent += `</div>`;
     }
+
 
     container.innerHTML = htmlContent;
 }
