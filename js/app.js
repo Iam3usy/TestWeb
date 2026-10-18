@@ -172,30 +172,53 @@ function closePlayer() {
     }
 }
 
-// 🌐 Global Session Check (Login ဝင်ထားမှသာ Login ကို Account သို့ ပြောင်းရန်)
+// 🌐 စာမျက်နှာအလိုက် Active Menu နှင့် Login/Account အခြေအနေကို ထိန်းချုပ်ခြင်း
 document.addEventListener("DOMContentLoaded", () => {
+    const currentPath = window.location.pathname;
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const menuList = document.querySelector(".sidebar .menu-list");
     
+    const menuList = document.querySelector(".sidebar .menu-list");
     if (menuList) {
         const menuItems = menuList.querySelectorAll("li");
+        
         menuItems.forEach(li => {
+            // ပထမဆုံးအနေနဲ့ မီနူးတစ်ခုချင်းစီမှာ ပါလာနိုင်တဲ့ active အားလုံးကို အရင်ရှင်းမည်
+            li.classList.remove("active");
+
             const link = li.querySelector("a");
-            if (link && link.getAttribute("href") === "login.html") {
+            if (!link) return;
+            
+            const href = link.getAttribute("href");
+            
+            // ၁။ Login / Account မီနူးကို စစ်ဆေးခြင်း
+            if (href === "login.html" || href === "account.html") {
                 if (isLoggedIn === 'true') {
-                    // Login ဝင်ထားပြီးမှသာ Account လို့ပြမည်
                     link.setAttribute("href", "account.html");
                     link.innerHTML = `<i class="fa-solid fa-user"></i> Account`;
+                    
+                    // အကယ်၍ လက်ရှိရောက်နေသော စာမျက်နှာသည် account.html ဖြစ်မှသာ active ပေးမည်
+                    if (currentPath.includes("account.html")) {
+                        li.classList.add("active");
+                    }
                 } else {
-                    // Login မဝင်ရသေးပါက Login အတိုင်းသာ ပြမည်
                     link.setAttribute("href", "login.html");
                     link.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login`;
+                    
+                    if (currentPath.includes("login.html")) {
+                        li.classList.add("active");
+                    }
+                }
+            } 
+            // ၂။ တခြား မီနူးများအတွက် (Latest, Popular, Category စသည်ဖြင့်)
+            else {
+                if (href && currentPath.includes(href)) {
+                    li.classList.add("active");
                 }
             }
         });
     }
     
-    // အကယ်၍ ဗီဒီယို ကွန်တိန်နာ ပါရှိပါက ဒေတာဆွဲရန်
+    // ဗီဒီယို ဒေတာ ဆွဲရန် ရှိပါက ဆွဲရန်
     if (document.getElementById('videoContainer')) {
         loadDataFromWorker();
     }
