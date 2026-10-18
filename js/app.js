@@ -155,6 +155,7 @@ function renderMainContent(path, container) {
 
 // Model Page
 async function loadModelPageData() {
+    showLoading('videoContainer');
     const urlParams = new URLSearchParams(window.location.search);
     const selectedModel = urlParams.get('model');
     const pageTitle = document.getElementById('pageTitle');
@@ -644,5 +645,19 @@ function closePlayer() {
         if (window.videojs && videojs.getPlayers()['my-video']) videojs.getPlayers()['my-video'].dispose();
         modal.style.display = 'none';
         modal.innerHTML = '';
+    }
+}
+
+// Loading ပြရန် Function
+function showLoading(containerId) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.style.position = 'relative';
+        container.innerHTML = `
+            <div class="gif-loading-overlay">
+                <img src="https://files.catbox.moe/xvjbha.gif" alt="Loading...">
+                <div class="gif-loading-text">ခဏစောင့်ပါ...</div>
+            </div>
+        `;
     }
 }
