@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const res = await fetch(WORKER_API_URL);
         const data = await res.json();
         if (Array.isArray(data)) {
-            globalVideoData = data.filter(item => item && item.file_id).map(item => ({
+            globalVideoData = data.filter(item => item && cleanText(item.title) !== '' && item.file_id).map(item => ({
                 title: cleanText(item.title),
                 views: Number(item.views) || 0,
                 thumbnail: getDirectDriveLink(item.thumbnail) || '',
@@ -164,16 +164,18 @@ async function loadModelPageData() {
         const response = await fetch(SCRIPT_API_URL);
         const data = await response.json();
         if (Array.isArray(data)) {
-            const allVideos = data.map(item => ({
-                title: item.title ? String(item.title).trim() : '',
-                model_name: item.model_name ? String(item.model_name).trim() : (item.model ? String(item.model).trim() : ''),
-                model: item.model ? String(item.model).trim() : '',
-                model_image: item.model_image ? String(item.model_image).trim() : '',
-                thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
-                file_id: item.file_id ? String(item.file_id).trim() : '',
-                stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
-                views: item.views || 0
-            }));
+            const allVideos = data
+                .filter(item => item && cleanText(item.title) !== '' && item.file_id)
+                .map(item => ({
+                    title: cleanText(item.title),
+                    model_name: item.model_name ? String(item.model_name).trim() : (item.model ? String(item.model).trim() : ''),
+                    model: item.model ? String(item.model).trim() : '',
+                    model_image: item.model_image ? String(item.model_image).trim() : '',
+                    thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
+                    file_id: item.file_id ? String(item.file_id).trim() : '',
+                    stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
+                    views: Number(item.views) || 0
+                }));
 
             if (selectedModel) {
                 const mContainer = document.getElementById('modelContainer');
@@ -299,16 +301,18 @@ async function loadCategoryPageData() {
         const response = await fetch(SCRIPT_API_URL);
         const data = await response.json();
         if (Array.isArray(data)) {
-            const allVideos = data.map(item => ({
-                title: item.title ? String(item.title).trim() : '',
-                category_name: item.category_name ? String(item.category_name).trim() : (item.category ? String(item.category).trim() : ''),
-                category: item.category ? String(item.category).trim() : '',
-                category_image: item.category_image ? String(item.category_image).trim() : '',
-                thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
-                file_id: item.file_id ? String(item.file_id).trim() : '',
-                stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
-                views: item.views || 0
-            }));
+            const allVideos = data
+                .filter(item => item && cleanText(item.title) !== '' && item.file_id)
+                .map(item => ({
+                    title: cleanText(item.title),
+                    category_name: item.category_name ? String(item.category_name).trim() : (item.category ? String(item.category).trim() : ''),
+                    category: item.category ? String(item.category).trim() : '',
+                    category_image: item.category_image ? String(item.category_image).trim() : '',
+                    thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
+                    file_id: item.file_id ? String(item.file_id).trim() : '',
+                    stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
+                    views: Number(item.views) || 0
+                }));
 
             if (selectedCategory) {
                 const cContainer = document.getElementById('categoryContainer');
@@ -439,23 +443,25 @@ async function loadSearchPageData() {
         return;
     }
 
-  try {
+    try {
         const response = await fetch(SCRIPT_API_URL);
         const data = await response.json();
         if (Array.isArray(data)) {
-            allVideosData = data.map(item => ({
-                title: item.title ? String(item.title).trim() : '',
-                model_name: item.model_name ? String(item.model_name).trim() : '',
-                model: item.model ? String(item.model).trim() : '',
-                model_image: item.model_image ? String(item.model_image).trim() : '',
-                category_name: item.category_name ? String(item.category_name).trim() : '',
-                category: item.category ? String(item.category).trim() : '',
-                category_image: item.category_image ? String(item.category_image).trim() : '',
-                thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
-                file_id: item.file_id ? String(item.file_id).trim() : '',
-                stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
-                views: item.views || 0
-            })).filter(item => item.title !== '');
+            allVideosData = data
+                .filter(item => item && cleanText(item.title) !== '' && item.file_id)
+                .map(item => ({
+                    title: cleanText(item.title),
+                    model_name: item.model_name ? String(item.model_name).trim() : '',
+                    model: item.model ? String(item.model).trim() : '',
+                    model_image: item.model_image ? String(item.model_image).trim() : '',
+                    category_name: item.category_name ? String(item.category_name).trim() : '',
+                    category: item.category ? String(item.category).trim() : '',
+                    category_image: item.category_image ? String(item.category_image).trim() : '',
+                    thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
+                    file_id: item.file_id ? String(item.file_id).trim() : '',
+                    stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
+                    views: Number(item.views) || 0
+                }));
         }
     } catch (err) {
         console.error("Search Fetch Error:", err);
@@ -476,32 +482,36 @@ function handleSearch() {
 
     const modelMap = new Map();
     allVideosData.forEach(v => {
-        if (v.model_name) {
-            v.model_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+        if (v.model_name || v.model) {
+            let mStr = v.model_name || v.model;
+            mStr.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
                 let lower = name.toLowerCase();
                 if (!modelMap.has(lower)) modelMap.set(lower, { name, image: v.model_image || '', count: 0 });
             });
         }
     });
     allVideosData.forEach(v => {
-        if (v.model) {
-            let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
+        let mVal = v.model || v.model_name;
+        if (mVal) {
+            let vModels = mVal.split(',').map(n => n.trim().toLowerCase());
             modelMap.forEach((mObj, lowerKey) => { if (vModels.includes(lowerKey)) mObj.count++; });
         }
     });
 
     const categoryMap = new Map();
     allVideosData.forEach(v => {
-        if (v.category_name) {
-            v.category_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+        if (v.category_name || v.category) {
+            let cStr = v.category_name || v.category;
+            cStr.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
                 let lower = name.toLowerCase();
                 if (!categoryMap.has(lower)) categoryMap.set(lower, { name, image: v.category_image || '', count: 0 });
             });
         }
     });
     allVideosData.forEach(v => {
-        if (v.category) {
-            let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
+        let cVal = v.category || v.category_name;
+        if (cVal) {
+            let vCategories = cVal.split(',').map(n => n.trim().toLowerCase());
             categoryMap.forEach((cObj, lowerKey) => { if (vCategories.includes(lowerKey)) cObj.count++; });
         }
     });
@@ -517,7 +527,6 @@ function handleSearch() {
 
     let htmlContent = '';
 
-        // Model Section (ရှိပြီးသား .model-grid နှင့် .model-card ကို တိုက်ရိုက်သုံးရန်)
     if (matchedModels.length > 0) {
         htmlContent += `<h3 class="search-section-title" style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Model</h3><div class="model-grid">`;
         matchedModels.forEach(m => {
@@ -537,7 +546,6 @@ function handleSearch() {
         htmlContent += `</div>`;
     }
 
-    // Category Section (ရှိပြီးသား .model-grid နှင့် .model-card ကို တိုက်ရိုက်သုံးရန်)
     if (matchedCategories.length > 0) {
         htmlContent += `<h3 class="search-section-title" style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Category</h3><div class="model-grid">`;
         matchedCategories.forEach(c => {
@@ -557,7 +565,6 @@ function handleSearch() {
         htmlContent += `</div>`;
     }
 
-    // Video Section (ရှိပြီးသား .video-grid နှင့် .video-card ကို တိုက်ရိုက်သုံးရန်)
     if (matchedVideos.length > 0) {
         htmlContent += `<h3 class="search-section-title" style="font-size: 15px; color: var(--primary-color, #e91e63); margin: 20px 0 10px 0; border-bottom: 1px solid var(--border-color, #262626); padding-bottom: 5px;">Video</h3><div class="video-grid">`;
         matchedVideos.forEach(v => {
@@ -574,10 +581,8 @@ function handleSearch() {
         htmlContent += `</div>`;
     }
 
-
     container.innerHTML = htmlContent;
 }
-
 
 // Video Player Modal
 function openPlayer(fileId, streamUrl) {
@@ -646,3 +651,4 @@ function closePlayer() {
         modal.innerHTML = '';
     }
 }
+    
