@@ -108,11 +108,10 @@ videos.forEach(v => {
                 categoryMap.set(lowerKey, {
                     name: name,
                     image: v.category_image || 'https://via.placeholder.com/150',
-                    count: 1
+                    count: 0
                 });
             } else {
                 let c = categoryMap.get(lowerKey);
-                c.count++;
                 if ((!c.image || c.image.includes('placeholder')) && v.category_image) {
                     c.image = v.category_image;
                 }
@@ -120,6 +119,18 @@ videos.forEach(v => {
         });
     }
 });
+
+videos.forEach(v => {
+    if (v.category) {
+        let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
+        categoryMap.forEach((cObj, lowerKey) => {
+            if (vCategories.includes(lowerKey)) {
+                cObj.count++;
+            }
+        });
+    }
+});
+
 
 // ၂။ ဗီဒီယိုများထဲတွင် ဤ Category ပါဝင်သည့် အကြိမ်အရေအတွက်ကို အမှန်တကလိုက် ရေတွက်ခြင်း
 videos.forEach(v => {
