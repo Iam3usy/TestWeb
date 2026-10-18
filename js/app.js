@@ -19,7 +19,7 @@ function cleanText(text) {
     return text ? String(text).replace(/[\r\n]+/g, '').trim() : '';
 }
 
-// 🌐 1. Global Session & Active Menu Check
+// 1. Global Session & Active Menu Check
 function initSidebarAndSession() {
     const currentPath = window.location.pathname;
     const isLoggedIn = localStorage.getItem('isLoggedIn');
@@ -68,7 +68,7 @@ function checkVipAccess(silent = false) {
     return isVip;
 }
 
-// 🌐 2. Page အလိုက် လုပ်ဆောင်ချက်များ
+// 2. Page Router
 document.addEventListener("DOMContentLoaded", async () => {
     initSidebarAndSession();
     const path = window.location.pathname;
@@ -166,7 +166,7 @@ async function loadModelPageData() {
         if (Array.isArray(data)) {
             const allVideos = data.map(item => ({
                 title: item.title ? String(item.title).trim() : '',
-                model_name: item.model_name ? String(item.model_name).trim() : '',
+                model_name: item.model_name ? String(item.model_name).trim() : (item.model ? String(item.model).trim() : ''),
                 model: item.model ? String(item.model).trim() : '',
                 model_image: item.model_image ? String(item.model_image).trim() : '',
                 thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
@@ -176,12 +176,22 @@ async function loadModelPageData() {
             }));
 
             if (selectedModel) {
-                document.getElementById('modelContainer').style.display = 'none';
-                document.getElementById('videoContainer').style.display = 'grid';
+                const mContainer = document.getElementById('modelContainer');
+                const vContainer = document.getElementById('videoContainer');
+                if (mContainer) mContainer.style.display = 'none';
+                if (vContainer) {
+                    vContainer.style.display = 'grid';
+                    vContainer.className = 'video-grid';
+                }
                 renderVideosForModel(selectedModel, allVideos);
             } else {
-                document.getElementById('videoContainer').style.display = 'none';
-                document.getElementById('modelContainer').style.display = 'grid';
+                const vContainer = document.getElementById('videoContainer');
+                const mContainer = document.getElementById('modelContainer');
+                if (vContainer) vContainer.style.display = 'none';
+                if (mContainer) {
+                    mContainer.style.display = 'grid';
+                    mContainer.className = 'model-grid';
+                }
                 renderModelsAtoZ(allVideos);
             }
         }
@@ -193,12 +203,15 @@ async function loadModelPageData() {
 function renderModelsAtoZ(videos) {
     const container = document.getElementById('modelContainer');
     if (!container) return;
+    container.className = 'model-grid';
+    container.style.cssText = "display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; padding: 12px !important;";
     container.innerHTML = '';
 
     const modelMap = new Map();
     videos.forEach(v => {
-        if (v.model_name) {
-            v.model_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+        let mName = v.model_name || v.model;
+        if (mName) {
+            mName.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
                 let lowerKey = name.toLowerCase().trim();
                 if (!modelMap.has(lowerKey)) {
                     modelMap.set(lowerKey, { name, image: v.model_image || '', count: 0 });
@@ -211,8 +224,9 @@ function renderModelsAtoZ(videos) {
     });
 
     videos.forEach(v => {
-        if (v.model) {
-            let vModels = v.model.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
+        let mValue = v.model || v.model_name;
+        if (mValue) {
+            let vModels = mValue.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
             modelMap.forEach((mObj, lowerKey) => {
                 if (vModels.includes(lowerKey)) mObj.count++;
             });
@@ -226,15 +240,18 @@ function renderModelsAtoZ(videos) {
     }
 
     modelsList.forEach(m => {
-        const imageSrc = m.image && !m.image.includes('placeholder') ? m.image : '';
+        const hasValidImage = m.image && !m.image.includes('placeholder');
+        const imageSrc = hasValidImage ? m.image : '';
         container.innerHTML += `
-            <a href="model.html?model=${encodeURIComponent(m.name)}" class="video-card">
-                <div class="thumbnail-box">
-                    <img src="${imageSrc}" alt="${m.name}" style="display:${imageSrc ? 'block' : 'none'}; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="model-fallback-icon" style="display:${imageSrc ? 'none' : 'flex'};"><i class="fa-solid fa-venus"></i></div>
-                    <span class="view-badge">${m.count}</span>
+            <a href="model.html?model=${encodeURIComponent(m.name)}" class="model-card">
+                <div class="model-img-container">
+                    <img src="${imageSrc}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover; display:${imageSrc ? 'block' : 'none'};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="model-placeholder" style="width:100%; height:100%; background:#222; display:${imageSrc ? 'none' : 'flex'}; align-items:center; justify-content:center; color:#777; font-size:24px;">
+                        <i class="fa-solid fa-venus"></i>
+                    </div>
+                    <span class="video-count-badge"><i class="fa-solid fa-eye"></i> ${m.count}</span>
                 </div>
-                <div class="video-info"><h3>${m.name}</h3></div>
+                <div class="model-name">${m.name}</div>
             </a>
         `;
     });
@@ -247,13 +264,14 @@ function renderVideosForModel(selectedModel, videos) {
 
     const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
     const matchedVideos = videos.filter(v => {
-        if (!v.model) return false;
-        let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
+        let mValue = v.model || v.model_name;
+        if (!mValue) return false;
+        let vModels = mValue.split(',').map(n => n.trim().toLowerCase());
         return vModels.includes(decodedModel);
     });
 
     if (matchedVideos.length === 0) {
-        container.innerHTML = `<p class="empty-msg">"${selectedModel}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
+        container.innerHTML = `<p class="empty-msg" style="grid-column:1/-1; text-align:center; padding:30px;">"${selectedModel}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
         return;
     }
 
@@ -270,8 +288,7 @@ function renderVideosForModel(selectedModel, videos) {
     });
 }
 
-
-// Category Page Data Load
+// Category Page
 async function loadCategoryPageData() {
     const urlParams = new URLSearchParams(window.location.search);
     const selectedCategory = urlParams.get('category');
@@ -308,7 +325,7 @@ async function loadCategoryPageData() {
                 if (vContainer) vContainer.style.display = 'none';
                 if (cContainer) {
                     cContainer.style.display = 'grid';
-                    cContainer.className = 'model-grid'; // CSS ထဲက model-grid ကို သုံးရန်
+                    cContainer.className = 'model-grid';
                 }
                 renderCategoriesAtoZ(allVideos);
             }
@@ -321,6 +338,8 @@ async function loadCategoryPageData() {
 function renderCategoriesAtoZ(videos) {
     const container = document.getElementById('categoryContainer');
     if (!container) return;
+    container.className = 'model-grid';
+    container.style.cssText = "display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; padding: 12px !important;";
     container.innerHTML = '';
 
     const categoryMap = new Map();
@@ -356,12 +375,15 @@ function renderCategoriesAtoZ(videos) {
     }
 
     categoriesList.forEach(c => {
-        const imageSrc = c.image && !c.image.includes('placeholder') ? c.image : '';
+        const hasValidImage = c.image && !c.image.includes('placeholder');
+        const imageSrc = hasValidImage ? c.image : '';
         container.innerHTML += `
             <a href="category.html?category=${encodeURIComponent(c.name)}" class="model-card">
                 <div class="model-img-container">
-                    <img src="${imageSrc}" alt="${c.name}" style="display:${imageSrc ? 'block' : 'none'};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="model-placeholder" style="display:${imageSrc ? 'none' : 'flex'};"><i class="fa-solid fa-hashtag"></i></div>
+                    <img src="${imageSrc}" alt="${c.name}" style="width:100%; height:100%; object-fit:cover; display:${imageSrc ? 'block' : 'none'};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="model-placeholder" style="width:100%; height:100%; background:#222; display:${imageSrc ? 'none' : 'flex'}; align-items:center; justify-content:center; color:#777; font-size:24px;">
+                        <i class="fa-solid fa-hashtag"></i>
+                    </div>
                     <span class="video-count-badge"><i class="fa-solid fa-hashtag"></i> ${c.count}</span>
                 </div>
                 <div class="model-name">${c.name}</div>
@@ -400,138 +422,6 @@ function renderVideosForCategory(selectedCategory, videos) {
         `;
     });
 }
-
-// Model Page Data Load (Model အတွက်ပါ CSS Class များကို ပုံစံတူ သုံးပေးရန်)
-async function loadModelPageData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const selectedModel = urlParams.get('model');
-    const pageTitle = document.getElementById('pageTitle');
-    if (selectedModel && pageTitle) pageTitle.innerText = selectedModel;
-
-    try {
-        const response = await fetch(SCRIPT_API_URL);
-        const data = await response.json();
-        if (Array.isArray(data)) {
-            const allVideos = data.map(item => ({
-                title: item.title ? String(item.title).trim() : '',
-                model_name: item.model_name ? String(item.model_name).trim() : (item.model ? String(item.model).trim() : ''),
-                model: item.model ? String(item.model).trim() : '',
-                model_image: item.model_image ? String(item.model_image).trim() : '',
-                thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
-                file_id: item.file_id ? String(item.file_id).trim() : '',
-                stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
-                views: item.views || 0
-            }));
-
-            if (selectedModel) {
-                const mContainer = document.getElementById('modelContainer');
-                const vContainer = document.getElementById('videoContainer');
-                if (mContainer) mContainer.style.display = 'none';
-                if (vContainer) {
-                    vContainer.style.display = 'grid';
-                    vContainer.className = 'video-grid';
-                }
-                renderVideosForModel(selectedModel, allVideos);
-            } else {
-                const vContainer = document.getElementById('videoContainer');
-                const mContainer = document.getElementById('modelContainer');
-                if (vContainer) vContainer.style.display = 'none';
-                if (mContainer) {
-                    mContainer.style.display = 'grid';
-                    mContainer.className = 'model-grid';
-                }
-                renderModelsAtoZ(allVideos);
-            }
-        }
-    } catch (err) {
-        console.error("Model Fetch Error:", err);
-    }
-}
-
-function renderModelsAtoZ(videos) {
-    const container = document.getElementById('modelContainer');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const modelMap = new Map();
-    videos.forEach(v => {
-        let mName = v.model_name || v.model;
-        if (mName) {
-            mName.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
-                let lowerKey = name.toLowerCase().trim();
-                if (!modelMap.has(lowerKey)) {
-                    modelMap.set(lowerKey, { name, image: v.model_image || '', count: 0 });
-                } else {
-                    let m = modelMap.get(lowerKey);
-                    if ((!m.image || m.image.includes('placeholder')) && v.model_image) m.image = v.model_image;
-                }
-            });
-        }
-    });
-
-    videos.forEach(v => {
-        let mValue = v.model || v.model_name;
-        if (mValue) {
-            let vModels = mValue.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
-            modelMap.forEach((mObj, lowerKey) => {
-                if (vModels.includes(lowerKey)) mObj.count++;
-            });
-        }
-    });
-
-    const modelsList = Array.from(modelMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
-    if (modelsList.length === 0) {
-        container.innerHTML = '<p class="empty-msg">Model ဒေတာ မရှိသေးပါ။</p>';
-        return;
-    }
-
-    modelsList.forEach(m => {
-        const imageSrc = m.image && !m.image.includes('placeholder') ? m.image : '';
-        container.innerHTML += `
-            <a href="model.html?model=${encodeURIComponent(m.name)}" class="model-card">
-                <div class="model-img-container">
-                    <img src="${imageSrc}" alt="${m.name}" style="display:${imageSrc ? 'block' : 'none'};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="model-placeholder" style="display:${imageSrc ? 'none' : 'flex'};"><i class="fa-solid fa-venus"></i></div>
-                    <span class="video-count-badge"><i class="fa-solid fa-eye"></i> ${m.count}</span>
-                </div>
-                <div class="model-name">${m.name}</div>
-            </a>
-        `;
-    });
-}
-
-function renderVideosForModel(selectedModel, videos) {
-    const container = document.getElementById('videoContainer');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
-    const matchedVideos = videos.filter(v => {
-        let mValue = v.model || v.model_name;
-        if (!mValue) return false;
-        let vModels = mValue.split(',').map(n => n.trim().toLowerCase());
-        return vModels.includes(decodedModel);
-    });
-
-    if (matchedVideos.length === 0) {
-        container.innerHTML = `<p class="empty-msg" style="grid-column:1/-1; text-align:center; padding:30px;">"${selectedModel}" နှင့် ပတ်သက်သော ဇာတ်ကား မရှိသေးပါ။</p>`;
-        return;
-    }
-
-    matchedVideos.forEach(v => {
-        container.innerHTML += `
-            <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
-                <div class="thumbnail-box">
-                    <video src="${v.thumbnail}" autoplay loop muted playsinline></video>
-                    <span class="view-badge"><i class="fa-solid fa-eye"></i> ${v.views}</span>
-                </div>
-                <div class="video-info"><h3>${v.title}</h3></div>
-            </div>
-        `;
-    });
-}
-
-    
 
 // Search Page
 async function loadSearchPageData() {
@@ -630,9 +520,9 @@ function handleSearch() {
         htmlContent += `<h3 class="search-section-title">Model</h3><div class="search-grid-3">`;
         matchedModels.forEach(m => {
             htmlContent += `
-                <a href="model.html?model=${encodeURIComponent(m.name)}" class="video-card">
-                    <div class="thumbnail-box"><img src="${m.image}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://via.placeholder.com/150';"><span class="view-badge">${m.count}</span></div>
-                    <div class="video-info"><h3>${m.name}</h3></div>
+                <a href="model.html?model=${encodeURIComponent(m.name)}" class="model-card">
+                    <div class="model-img-container"><img src="${m.image}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://via.placeholder.com/150';"><span class="video-count-badge">${m.count}</span></div>
+                    <div class="model-name">${m.name}</div>
                 </a>
             `;
         });
@@ -643,9 +533,9 @@ function handleSearch() {
         htmlContent += `<h3 class="search-section-title">Category</h3><div class="search-grid-3">`;
         matchedCategories.forEach(c => {
             htmlContent += `
-                <a href="category.html?category=${encodeURIComponent(c.name)}" class="video-card">
-                    <div class="thumbnail-box"><img src="${c.image}" alt="${c.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://via.placeholder.com/150';"><span class="view-badge">${c.count}</span></div>
-                    <div class="video-info"><h3>${c.name}</h3></div>
+                <a href="category.html?category=${encodeURIComponent(c.name)}" class="model-card">
+                    <div class="model-img-container"><img src="${c.image}" alt="${c.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://via.placeholder.com/150';"><span class="video-count-badge">${c.count}</span></div>
+                    <div class="model-name">${c.name}</div>
                 </a>
             `;
         });
@@ -653,7 +543,7 @@ function handleSearch() {
     }
 
     if (matchedVideos.length > 0) {
-        htmlContent += `<h3 class="search-section-title">Video</h3><div class="search-grid-2">`;
+        htmlContent += `<h3 class="search-section-title">Video</h3><div class="video-grid">`;
         matchedVideos.forEach(v => {
             htmlContent += `
                 <div class="video-card" onclick="openPlayer('${v.file_id}', '${v.stream_url}')">
