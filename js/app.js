@@ -44,6 +44,12 @@ async function loadDataFromWorker() {
 // မျက်နှာပြင်အလိုက် ခွဲထုတ်ပြသခြင်း
 function checkPageAndRender() {
     const path = window.location.pathname;
+
+    // Model, Category, Search စာမျက်နှာများတွင် app.js က ဝင်မနှောက်ယှက်ရန် ဤနေရာတွင် ရပ်ტنتမည်
+    if (path.includes('model.html') || path.includes('category.html') || path.includes('search.html')) {
+        return;
+    }
+
     const container = document.getElementById('videoContainer');
     if (!container) return;
 
