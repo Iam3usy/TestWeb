@@ -71,12 +71,12 @@
 
                 </div>
 
-                <!-- Renew VIP Key စာသား (ခလုတ်မဟုတ်ပါ) -->
+                <!-- Renew VIP Key -->
                 <div style="width: 100%; text-align: center; margin: 5px 0 0 0;">
-                    <span style="font-size: 13px; color: #f39c12; font-weight: bold;">Renew VIP Key (ဆက်သွယ်ရန်)</span>
+                    <span style="font-size: 13px; color: #f39c12; font-weight: bold;">Renew VIP Key </span>
                 </div>
 
-                <!-- Viber နှင့် Telegram ခလုတ်များ (ဘေးချင်းကပ် တစ်ဝက်စီ) -->
+                <!-- Viber & Telegram ခလုတ်များ-->
                 <div style="width: 100%; display: flex; gap: 10px;">
                     <a href="https://viber.com" target="_blank" style="flex: 1; background: #7360f2; color: #fff; text-decoration: none; padding: 11px; border-radius: 6px; font-weight: bold; font-size: 13px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <i class="fa-brands fa-viber"></i> Viber
@@ -100,17 +100,17 @@
     <!-- Image Picker Choice Modal -->
     <div id="imagePickerModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:99999; align-items:center; justify-content:center;">
         <div style="background:var(--card-bg, #1a1a1a); padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.5); border:1px solid var(--border-color, #333);">
-            <h3 style="color:#fff; margin-bottom:15px; font-size:16px;">Profile ပုံပြောင်းရန်</h3>
-            <p style="color:#b2bec3; font-size:13px; margin-bottom:20px;">ပုံဘယ်က ထည့်မလဲ ရွေးချယ်ပါ</p>
+            <h3 style="color:#fff; margin-bottom:15px; font-size:16px;">Edit Profile </h3>
+            <p style="color:#b2bec3; font-size:13px; margin-bottom:20px;">Choice Your Photo</p>
             
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <button onclick="triggerCamera()" style="background:#2ecc71; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                    <i class="fa-solid fa-camera"></i> ကင်မရာမှ ရိုက်မည်
+                    <i class="fa-solid fa-camera"></i> Camera 
                 </button>
                 <button onclick="triggerGallery()" style="background:#3498db; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                    <i class="fa-solid fa-image"></i> ဖုန်း Gallery မှ ရွေးမည်
+                    <i class="fa-solid fa-image"></i> Gallery
                 </button>
-                <button onclick="closeImagePickerModal()" style="background:#e74c3c; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; margin-top:5px;">မလုပ်တော့ပါ</button>
+                <button onclick="closeImagePickerModal()" style="background:#e74c3c; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; margin-top:5px;">Cancel</button>
             </div>
         </div>
     </div>
@@ -128,7 +128,7 @@
             document.getElementById('accUsername').value = localStorage.getItem('username') || '';
             document.getElementById('accVipKey').value = localStorage.getItem('vip_key') || '';
             
-            // ရက်စွဲကို DD.MM.YYYY ပုံစံသို့ ပြောင်းလဲခြင်း
+            // DD.MM.YYYY 
             const rawExpireDate = localStorage.getItem('expire_date');
             if (rawExpireDate) {
                 const dateObj = new Date(rawExpireDate);
