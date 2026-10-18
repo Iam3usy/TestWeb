@@ -164,12 +164,12 @@ async function loadModelPageData() {
         const response = await fetch(SCRIPT_API_URL);
         const data = await response.json();
         if (Array.isArray(data)) {
+            // Title မပါတာတွေနဲ့ file_id မရှိတာတွေကို ဖယ်ထုတ်ပြီး ကော်လံ D (model) ကို သုံးမည်
             const allVideos = data
                 .filter(item => item && cleanText(item.title) !== '' && item.file_id)
                 .map(item => ({
                     title: cleanText(item.title),
-                    model_name: item.model_name ? String(item.model_name).trim() : (item.model ? String(item.model).trim() : ''),
-                    model: item.model ? String(item.model).trim() : '',
+                    model: item.model ? String(item.model).trim() : '', // ကော်လံ D (Model) ကို သီးသန့်ယူသည်
                     model_image: item.model_image ? String(item.model_image).trim() : '',
                     thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
                     file_id: item.file_id ? String(item.file_id).trim() : '',
@@ -210,11 +210,12 @@ function renderModelsAtoZ(videos) {
     container.innerHTML = '';
 
     const modelMap = new Map();
+
+    // 1st Pass: ကော်လံ D (v.model) မှ မော်ဒယ်နာမည်များကို စုဆောင်းခြင်း
     videos.forEach(v => {
-        let mName = v.model_name || v.model;
-        if (mName) {
-            mName.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
-                let lowerKey = name.toLowerCase().trim();
+        if (v.model) {
+            v.model.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+                let lowerKey = name.toLowerCase();
                 if (!modelMap.has(lowerKey)) {
                     modelMap.set(lowerKey, { name, image: v.model_image || '', count: 0 });
                 } else {
@@ -225,12 +226,14 @@ function renderModelsAtoZ(videos) {
         }
     });
 
+    // 2nd Pass: ကော်လံ D (v.model) တွင် ပါဝင်မှုအလိုက် Count တိုးပေးခြင်း
     videos.forEach(v => {
-        let mValue = v.model || v.model_name;
-        if (mValue) {
-            let vModels = mValue.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
+        if (v.model) {
+            let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
             modelMap.forEach((mObj, lowerKey) => {
-                if (vModels.includes(lowerKey)) mObj.count++;
+                if (vModels.includes(lowerKey)) {
+                    mObj.count++;
+                }
             });
         }
     });
@@ -266,9 +269,8 @@ function renderVideosForModel(selectedModel, videos) {
 
     const decodedModel = decodeURIComponent(selectedModel).trim().toLowerCase();
     const matchedVideos = videos.filter(v => {
-        let mValue = v.model || v.model_name;
-        if (!mValue) return false;
-        let vModels = mValue.split(',').map(n => n.trim().toLowerCase());
+        if (!v.model) return false;
+        let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
         return vModels.includes(decodedModel);
     });
 
@@ -289,6 +291,7 @@ function renderVideosForModel(selectedModel, videos) {
         `;
     });
 }
+
 
 // Category Page
 async function loadCategoryPageData() {
