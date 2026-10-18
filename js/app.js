@@ -224,9 +224,81 @@ function renderModelsAtoZ(videos) {
                 }
             });
         }
+// Model Page
+async function loadModelPageData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedModel = urlParams.get('model');
+    const pageTitle = document.getElementById('pageTitle');
+    if (selectedModel && pageTitle) pageTitle.innerText = selectedModel;
+
+    try {
+        const response = await fetch(SCRIPT_API_URL);
+        const data = await response.json();
+        if (Array.isArray(data)) {
+            // Title မပါတာတွေ ဖယ်ထုတ်ပြီး model_name နဲ့ model ကို သီးသန့်ယူမည်
+            const allVideos = data
+                .filter(item => item && cleanText(item.title) !== '' && item.file_id)
+                .map(item => ({
+                    title: cleanText(item.title),
+                    model_name: item.model_name ? String(item.model_name).trim() : '', // ကော်လံ B (Model Profile Name)
+                    model: item.model ? String(item.model).trim() : '',                // ကော်လံ D (Video-wise Models)
+                    model_image: item.model_image ? String(item.model_image).trim() : '',
+                    thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
+                    file_id: item.file_id ? String(item.file_id).trim() : '',
+                    stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
+                    views: Number(item.views) || 0
+                }));
+
+            if (selectedModel) {
+                const mContainer = document.getElementById('modelContainer');
+                const vContainer = document.getElementById('videoContainer');
+                if (mContainer) mContainer.style.display = 'none';
+                if (vContainer) {
+                    vContainer.style.display = 'grid';
+                    vContainer.className = 'video-grid';
+                }
+                renderVideosForModel(selectedModel, allVideos);
+            } else {
+                const vContainer = document.getElementById('videoContainer');
+                const mContainer = document.getElementById('modelContainer');
+                if (vContainer) vContainer.style.display = 'none';
+                if (mContainer) {
+                    mContainer.style.display = 'grid';
+                    mContainer.className = 'model-grid';
+                }
+                renderModelsAtoZ(allVideos);
+            }
+        }
+    } catch (err) {
+        console.error("Model Fetch Error:", err);
+    }
+}
+
+function renderModelsAtoZ(videos) {
+    const container = document.getElementById('modelContainer');
+    if (!container) return;
+    container.className = 'model-grid';
+    container.style.cssText = "display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; padding: 12px !important;";
+    container.innerHTML = '';
+
+    const modelMap = new Map();
+
+    // 1st Pass: ကော်လံ B (v.model_name) မှ မော်ဒယ်နာမည်များနှင့် ပုံများကို အဓိက စုဆောင်းခြင်း (ဇာတ်ကားမရှိသေးသူများပါ မပျောက်စေရန်)
+    videos.forEach(v => {
+        if (v.model_name) {
+            v.model_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+                let lowerKey = name.toLowerCase();
+                if (!modelMap.has(lowerKey)) {
+                    modelMap.set(lowerKey, { name, image: v.model_image || '', count: 0 });
+                } else {
+                    let m = modelMap.get(lowerKey);
+                    if ((!m.image || m.image.includes('placeholder')) && v.model_image) m.image = v.model_image;
+                }
+            });
+        }
     });
 
-    // 2nd Pass: ကော်လံ D (v.model) တွင် ပါဝင်မှုအလိုက် Count တိုးပေးခြင်း
+    // 2nd Pass: ကော်လံ D (v.model) တွင် ပါဝင်မှုအလိုက် Count အမှန်ကို ရေတွက်ခြင်း
     videos.forEach(v => {
         if (v.model) {
             let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
@@ -291,7 +363,6 @@ function renderVideosForModel(selectedModel, videos) {
         `;
     });
 }
-
 
 // Category Page
 async function loadCategoryPageData() {
