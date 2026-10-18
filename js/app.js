@@ -172,22 +172,27 @@ function closePlayer() {
     }
 }
 
-// 🌐 Global Session Check (စာမျက်နှာတိုင်းတွင် Login ဝင်ပြီးသားဖြစ်ပါက Menu ကို Account သို့ ပြောင်းရန်)
+// 🌐 Global Session Check (Login ဝင်ထားမှသာ Login ကို Account သို့ ပြောင်းရန်)
 document.addEventListener("DOMContentLoaded", () => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn === 'true') {
-        const menuList = document.querySelector(".sidebar .menu-list");
-        if (menuList) {
-            const menuItems = menuList.querySelectorAll("li");
-            menuItems.forEach(li => {
-                const link = li.querySelector("a");
-                if (link && link.getAttribute("href") === "login.html") {
+    const menuList = document.querySelector(".sidebar .menu-list");
+    
+    if (menuList) {
+        const menuItems = menuList.querySelectorAll("li");
+        menuItems.forEach(li => {
+            const link = li.querySelector("a");
+            if (link && link.getAttribute("href") === "login.html") {
+                if (isLoggedIn === 'true') {
+                    // Login ဝင်ထားပြီးမှသာ Account လို့ပြမည်
                     link.setAttribute("href", "account.html");
                     link.innerHTML = `<i class="fa-solid fa-user"></i> Account`;
-                    li.classList.add("active");
+                } else {
+                    // Login မဝင်ရသေးပါက Login အတိုင်းသာ ပြမည်
+                    link.setAttribute("href", "login.html");
+                    link.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login`;
                 }
-            });
-        }
+            }
+        });
     }
     
     // အကယ်၍ ဗီဒီယို ကွန်တိန်နာ ပါရှိပါက ဒေတာဆွဲရန်
