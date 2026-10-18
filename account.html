@@ -48,24 +48,24 @@
                     </div>
                 </div>
 
-                <!-- Username, VIP Key, Expire Date သီးခြားစီ Box ၃ ခု (ဘားတန်းပုံစံ Label ဖြင့်) -->
+                <!-- Username, VIP Key, Expire Date -->
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
                     
                     <!-- Username Box -->
                     <div style="position: relative; width: 100%;">
-                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">username</span>
+                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">USERNAME</span>
                         <input type="text" id="accUsername" readonly style="width: 100%; padding: 12px 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
 
                     <!-- VIP Key Box -->
                     <div style="position: relative; width: 100%;">
-                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">vip key</span>
+                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">VIP Key</span>
                         <input type="text" id="accVipKey" readonly style="width: 100%; padding: 12px 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
 
                     <!-- Expire Date Box -->
                     <div style="position: relative; width: 100%;">
-                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">expire date</span>
+                        <span style="position: absolute; top: -8px; left: 12px; background: var(--card-bg); padding: 0 5px; font-size: 11px; color: #a4b0be; font-weight: bold;">Expire Date</span>
                         <input type="text" id="accExpireDate" readonly style="width: 100%; padding: 12px 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #2ecc71; font-weight: bold; border-radius: 6px; font-size: 13px; text-align: center;">
                     </div>
 
@@ -73,7 +73,7 @@
 
                 <!-- Renew VIP Key -->
                 <div style="width: 100%; text-align: center; margin: 5px 0 0 0;">
-                    <span style="font-size: 13px; color: #f39c12; font-weight: bold;">Renew VIP Key </span>
+                    <span style="font-size: 13px; color: #f39c12; font-weight: bold;"> Renew VIP Key </span>
                 </div>
 
                 <!-- Viber & Telegram ခလုတ်များ-->
@@ -101,14 +101,14 @@
     <div id="imagePickerModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:99999; align-items:center; justify-content:center;">
         <div style="background:var(--card-bg, #1a1a1a); padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.5); border:1px solid var(--border-color, #333);">
             <h3 style="color:#fff; margin-bottom:15px; font-size:16px;">Edit Profile </h3>
-            <p style="color:#b2bec3; font-size:13px; margin-bottom:20px;">Choice Your Photo</p>
+            <p style="color:#b2bec3; font-size:13px; margin-bottom:20px;">Choose Profile Picture</p>
             
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <button onclick="triggerCamera()" style="background:#2ecc71; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                    <i class="fa-solid fa-camera"></i> Camera 
+                    <i class="fa-solid fa-camera"></i> Take Photo 
                 </button>
                 <button onclick="triggerGallery()" style="background:#3498db; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                    <i class="fa-solid fa-image"></i> Gallery
+                    <i class="fa-solid fa-image"></i> Choose from Gallery
                 </button>
                 <button onclick="closeImagePickerModal()" style="background:#e74c3c; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; margin-top:5px;">Cancel</button>
             </div>
