@@ -172,5 +172,26 @@ function closePlayer() {
     }
 }
 
-
-document.addEventListener("DOMContentLoaded", loadDataFromWorker);
+// 🌐 Global Session Check (စာမျက်နှာတိုင်းတွင် Login ဝင်ပြီးသားဖြစ်ပါက Menu ကို Account သို့ ပြောင်းရန်)
+document.addEventListener("DOMContentLoaded", () => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn === 'true') {
+        const menuList = document.querySelector(".sidebar .menu-list");
+        if (menuList) {
+            const menuItems = menuList.querySelectorAll("li");
+            menuItems.forEach(li => {
+                const link = li.querySelector("a");
+                if (link && link.getAttribute("href") === "login.html") {
+                    link.setAttribute("href", "account.html");
+                    link.innerHTML = `<i class="fa-solid fa-user"></i> Account`;
+                    li.classList.add("active");
+                }
+            });
+        }
+    }
+    
+    // အကယ်၍ ဗီဒီယို ကွန်တိန်နာ ပါရှိပါက ဒေတာဆွဲရန်
+    if (document.getElementById('videoContainer')) {
+        loadDataFromWorker();
+    }
+});
