@@ -153,7 +153,7 @@ function renderMainContent(path, container) {
     }
 }
 
-// Model Page
+// Model Page (Col A = model_name, Col D = model)
 async function loadModelPageData() {
     const urlParams = new URLSearchParams(window.location.search);
     const selectedModel = urlParams.get('model');
@@ -164,12 +164,12 @@ async function loadModelPageData() {
         const response = await fetch(SCRIPT_API_URL);
         const data = await response.json();
         if (Array.isArray(data)) {
-            // Title မပါတာတွေနဲ့ file_id မရှိတာတွေကို ဖယ်ထုတ်ပြီး ကော်လံ D (model) ကို သုံးမည်
             const allVideos = data
                 .filter(item => item && cleanText(item.title) !== '' && item.file_id)
                 .map(item => ({
                     title: cleanText(item.title),
-                    model: item.model ? String(item.model).trim() : '', // ကော်လံ D (Model) ကို သီးသန့်ယူသည်
+                    model_name: item.model_name ? String(item.model_name).trim() : '', // ကော်လံ A / B (Model Profile Name)
+                    model: item.model ? String(item.model).trim() : '',                // ကော်လံ D (Video Models)
                     model_image: item.model_image ? String(item.model_image).trim() : '',
                     thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
                     file_id: item.file_id ? String(item.file_id).trim() : '',
@@ -211,79 +211,7 @@ function renderModelsAtoZ(videos) {
 
     const modelMap = new Map();
 
-    // 1st Pass: ကော်လံ D (v.model) မှ မော်ဒယ်နာမည်များကို စုဆောင်းခြင်း
-    videos.forEach(v => {
-        if (v.model) {
-            v.model.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
-                let lowerKey = name.toLowerCase();
-                if (!modelMap.has(lowerKey)) {
-                    modelMap.set(lowerKey, { name, image: v.model_image || '', count: 0 });
-                } else {
-                    let m = modelMap.get(lowerKey);
-                    if ((!m.image || m.image.includes('placeholder')) && v.model_image) m.image = v.model_image;
-                }
-            });
-        }
-// Model Page
-async function loadModelPageData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const selectedModel = urlParams.get('model');
-    const pageTitle = document.getElementById('pageTitle');
-    if (selectedModel && pageTitle) pageTitle.innerText = selectedModel;
-
-    try {
-        const response = await fetch(SCRIPT_API_URL);
-        const data = await response.json();
-        if (Array.isArray(data)) {
-            // Title မပါတာတွေ ဖယ်ထုတ်ပြီး model_name နဲ့ model ကို သီးသန့်ယူမည်
-            const allVideos = data
-                .filter(item => item && cleanText(item.title) !== '' && item.file_id)
-                .map(item => ({
-                    title: cleanText(item.title),
-                    model_name: item.model_name ? String(item.model_name).trim() : '', // ကော်လံ B (Model Profile Name)
-                    model: item.model ? String(item.model).trim() : '',                // ကော်လံ D (Video-wise Models)
-                    model_image: item.model_image ? String(item.model_image).trim() : '',
-                    thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
-                    file_id: item.file_id ? String(item.file_id).trim() : '',
-                    stream_url: item.file_id ? `${STREAM_BASE_URL}${String(item.file_id).trim()}` : '',
-                    views: Number(item.views) || 0
-                }));
-
-            if (selectedModel) {
-                const mContainer = document.getElementById('modelContainer');
-                const vContainer = document.getElementById('videoContainer');
-                if (mContainer) mContainer.style.display = 'none';
-                if (vContainer) {
-                    vContainer.style.display = 'grid';
-                    vContainer.className = 'video-grid';
-                }
-                renderVideosForModel(selectedModel, allVideos);
-            } else {
-                const vContainer = document.getElementById('videoContainer');
-                const mContainer = document.getElementById('modelContainer');
-                if (vContainer) vContainer.style.display = 'none';
-                if (mContainer) {
-                    mContainer.style.display = 'grid';
-                    mContainer.className = 'model-grid';
-                }
-                renderModelsAtoZ(allVideos);
-            }
-        }
-    } catch (err) {
-        console.error("Model Fetch Error:", err);
-    }
-}
-
-function renderModelsAtoZ(videos) {
-    const container = document.getElementById('modelContainer');
-    if (!container) return;
-    container.className = 'model-grid';
-    container.style.cssText = "display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; padding: 12px !important;";
-    container.innerHTML = '';
-
-    const modelMap = new Map();
-
-    // 1st Pass: ကော်လံ B (v.model_name) မှ မော်ဒယ်နာမည်များနှင့် ပုံများကို အဓိက စုဆောင်းခြင်း (ဇာတ်ကားမရှိသေးသူများပါ မပျောက်စေရန်)
+    // 1st Pass: model_name (Col A) ကို အဓိကသုံး၍ မော်ဒယ်စာရင်း အပြည့်အစုံဖော်ပြရန် (ဇာတ်ကားမရှိသူများပါမပျောက်စေရန်)
     videos.forEach(v => {
         if (v.model_name) {
             v.model_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
@@ -298,7 +226,7 @@ function renderModelsAtoZ(videos) {
         }
     });
 
-    // 2nd Pass: ကော်လံ D (v.model) တွင် ပါဝင်မှုအလိုက် Count အမှန်ကို ရေတွက်ခြင်း
+    // 2nd Pass: model (Col D) တွင် ပါဝင်မှုအလိုက် Count အမှန်ကို ရေတွက်ခြင်း
     videos.forEach(v => {
         if (v.model) {
             let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
@@ -364,7 +292,7 @@ function renderVideosForModel(selectedModel, videos) {
     });
 }
 
-// Category Page
+// Category Page (Col A = category_name, Col E = category)
 async function loadCategoryPageData() {
     const urlParams = new URLSearchParams(window.location.search);
     const selectedCategory = urlParams.get('category');
@@ -375,12 +303,12 @@ async function loadCategoryPageData() {
         const response = await fetch(SCRIPT_API_URL);
         const data = await response.json();
         if (Array.isArray(data)) {
-            // Title မပါတာတွေနဲ့ file_id မရှိတာတွေကို ဖယ်ထုတ်ပြီး ကော်လံ E (category) ကို သုံးမည်
             const allVideos = data
                 .filter(item => item && cleanText(item.title) !== '' && item.file_id)
                 .map(item => ({
                     title: cleanText(item.title),
-                    category: item.category ? String(item.category).trim() : '', // ကော်လံ E (Category) ကို သီးသန့်ယူသည်
+                    category_name: item.category_name ? String(item.category_name).trim() : '', // ကော်လံ A (Category Name List)
+                    category: item.category ? String(item.category).trim() : '',                // ကော်လံ E (Video Categories)
                     category_image: item.category_image ? String(item.category_image).trim() : '',
                     thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
                     file_id: item.file_id ? String(item.file_id).trim() : '',
@@ -422,10 +350,10 @@ function renderCategoriesAtoZ(videos) {
 
     const categoryMap = new Map();
 
-    // 1st Pass: ကော်လံ E (v.category) မှ ကေတဂရီနာမည်များကို စုဆောင်းခြင်း
+        // 1st Pass: category_name ကိုသုံး၍ ကေတဂရီစာရင်းအပြည့်အစုံ ဖော်ပြရန်
     videos.forEach(v => {
-        if (v.category) {
-            v.category.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+        if (v.category_name) {
+            v.category_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
                 let lowerKey = name.toLowerCase();
                 if (!categoryMap.has(lowerKey)) {
                     categoryMap.set(lowerKey, { name, image: v.category_image || '', count: 0 });
@@ -437,7 +365,7 @@ function renderCategoriesAtoZ(videos) {
         }
     });
 
-    // 2nd Pass: ကော်လံ E (v.category) တွင် ပါဝင်မှုအလိုက် Count တိုးပေးခြင်း
+    // 2nd Pass: category (Col E) တွင် ပါဝင်မှုအလိုက် Count အမှန်ကို ရေတွက်ခြင်း
     videos.forEach(v => {
         if (v.category) {
             let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
@@ -503,7 +431,6 @@ function renderVideosForCategory(selectedCategory, videos) {
     });
 }
 
-
 // Search Page
 async function loadSearchPageData() {
     if (!checkVipAccess(true)) {
@@ -559,36 +486,32 @@ function handleSearch() {
 
     const modelMap = new Map();
     allVideosData.forEach(v => {
-        if (v.model_name || v.model) {
-            let mStr = v.model_name || v.model;
-            mStr.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+        if (v.model_name) {
+            v.model_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
                 let lower = name.toLowerCase();
                 if (!modelMap.has(lower)) modelMap.set(lower, { name, image: v.model_image || '', count: 0 });
             });
         }
     });
     allVideosData.forEach(v => {
-        let mVal = v.model || v.model_name;
-        if (mVal) {
-            let vModels = mVal.split(',').map(n => n.trim().toLowerCase());
+        if (v.model) {
+            let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
             modelMap.forEach((mObj, lowerKey) => { if (vModels.includes(lowerKey)) mObj.count++; });
         }
     });
 
     const categoryMap = new Map();
     allVideosData.forEach(v => {
-        if (v.category_name || v.category) {
-            let cStr = v.category_name || v.category;
-            cStr.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
+        if (v.category_name) {
+            v.category_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
                 let lower = name.toLowerCase();
                 if (!categoryMap.has(lower)) categoryMap.set(lower, { name, image: v.category_image || '', count: 0 });
             });
         }
     });
     allVideosData.forEach(v => {
-        let cVal = v.category || v.category_name;
-        if (cVal) {
-            let vCategories = cVal.split(',').map(n => n.trim().toLowerCase());
+        if (v.category) {
+            let vCategories = v.category.split(',').map(n => n.trim().toLowerCase());
             categoryMap.forEach((cObj, lowerKey) => { if (vCategories.includes(lowerKey)) cObj.count++; });
         }
     });
@@ -727,5 +650,5 @@ function closePlayer() {
         modal.style.display = 'none';
         modal.innerHTML = '';
     }
-}
-    
+                    }
+
