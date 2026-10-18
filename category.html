@@ -98,7 +98,6 @@
 
             const categoryMap = new Map();
 
-// ၁။ Category စာရင်းကို သီးသန့် စုစည်းခြင်း (Count ကို 0 က စမည်)
 videos.forEach(v => {
     if (v.category_name) {
         let names = v.category_name.split(',').map(n => n.trim()).filter(n => n !== '');
@@ -109,10 +108,11 @@ videos.forEach(v => {
                 categoryMap.set(lowerKey, {
                     name: name,
                     image: v.category_image || 'https://via.placeholder.com/150',
-                    count: 0
+                    count: 1
                 });
             } else {
                 let c = categoryMap.get(lowerKey);
+                c.count++;
                 if ((!c.image || c.image.includes('placeholder')) && v.category_image) {
                     c.image = v.category_image;
                 }
