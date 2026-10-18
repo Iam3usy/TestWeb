@@ -37,7 +37,7 @@
             <p style="color:#888; text-align:center; padding:30px; width:100%; grid-column:1/-1;">Loading models...</p>
         </div>
 
-        <!-- Model ကိုနှိပ်ရင် ဇာတ်ကားတွေပြမယ့် နေရာ (Index လိုမျိုး Grid Layout ပြင်ဆင်ထားသည်) -->
+        <!-- Model ကိုနှိပ်ရင် ဇာတ်ကားတွေပြမယ့် နေရာ -->
         <div class="video-grid" id="videoContainer" style="display:none;"></div>
     </main>
 
@@ -88,7 +88,7 @@
             }
         });
 
-        // 1. A to Z Model Cards
+        // 1. A to Z Model Cards (Count မှန်ကန်စေရန် နှစ်ဆင့်စနစ်ဖြင့် တည်ဆောက်ခြင်း)
         function renderModelsAtoZ(videos) {
             const container = document.getElementById('modelContainer');
             if (!container) return;
@@ -98,28 +98,29 @@
 
             const modelMap = new Map();
 
-videos.forEach(v => {
-    if (v.model_name) {
-        let names = v.model_name.split(',').map(n => n.trim()).filter(n => n !== '');
-        names.forEach(name => {
-            let lowerKey = name.toLowerCase().trim();
-            
-            if (!modelMap.has(lowerKey)) {
-                modelMap.set(lowerKey, {
-                    name: name,
-                    image: v.model_image || 'https://via.placeholder.com/150',
-                    count: 1
-                });
-            } else {
-                let m = modelMap.get(lowerKey);
-                m.count++;
-                if ((!m.image || m.image.includes('placeholder')) && v.model_image) {
-                    m.image = v.model_image;
+            // Step 1: B ကော်လံမှ မော်ဒယ်နာမည်များနှင့် ပုံများကို အရင်စုစည်းခြင်း (Count ကို 0 ဖြင့် စတင်ရန်)
+            videos.forEach(v => {
+                if (v.model_name) {
+                    let names = v.model_name.split(',').map(n => n.trim()).filter(n => n !== '');
+                    names.forEach(name => {
+                        let lowerKey = name.toLowerCase().trim();
+                        if (!modelMap.has(lowerKey)) {
+                            modelMap.set(lowerKey, {
+                                name: name,
+                                image: v.model_image || 'https://via.placeholder.com/150',
+                                count: 0
+                            });
+                        } else {
+                            let m = modelMap.get(lowerKey);
+                            if ((!m.image || m.image.includes('placeholder')) && v.model_image) {
+                                m.image = v.model_image;
+                            }
+                        }
+                    });
                 }
-            }
-        });
-    }
-});
+            });
+
+            // Step 2: D ကော်လံ (model) ထဲတွင် ပါဝင်မှုကို အခြေခံ၍ Count ကို တစ်ကြိမ်တည်းဖြင့် တိကျစွာ ရေတွက်ခြင်း
             videos.forEach(v => {
                 if (v.model) {
                     let vModels = v.model.split(',').map(n => n.trim().toLowerCase()).filter(n => n !== '');
@@ -155,12 +156,11 @@ videos.forEach(v => {
             });
         }
 
-        // 2. Index.html လိုမျိုး Video Card Grid CSS စတိုင်လ်အတိုင်း ကွက်တိပြင်ဆင်ခြင်း
+        // 2. Model နှိပ်လိုက်လျှင် D ကော်လံကို အခြေခံ၍ သက်ဆိုင်ရာ ဇာတ်ကားများကို ပြသခြင်း
         function renderVideosForModel(selectedModel, videos) {
             const container = document.getElementById('videoContainer');
             if (!container) return;
 
-            // Index style တိုင်း grid layout နှင့် gap သတ်မှတ်ခြင်း
             container.style.cssText = "display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; padding: 15px !important;";
             container.innerHTML = '';
 
