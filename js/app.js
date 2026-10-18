@@ -5,6 +5,21 @@ const STREAM_BASE_URL = "https://myhubapp.dathalay1.workers.dev/stream?file_id="
 let globalVideoData = [];
 let allVideosData = [];
 
+// Loading ပြရန် Function
+function showLoading(containerId) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.style.position = 'relative';
+        container.innerHTML = `
+            <div class="gif-loading-overlay">
+                <img src="https://files.catbox.moe/xvjbha.gif" alt="Loading...">
+                <div class="gif-loading-text">ခဏစောင့်ပါ...</div>
+            </div>
+        `;
+    }
+}
+
+
 function getDirectDriveLink(url) {
     if (!url) return '';
     const str = String(url).trim();
@@ -648,16 +663,3 @@ function closePlayer() {
     }
 }
 
-// Loading ပြရန် Function
-function showLoading(containerId) {
-    const container = document.getElementById(containerId);
-    if (container) {
-        container.style.position = 'relative';
-        container.innerHTML = `
-            <div class="gif-loading-overlay">
-                <img src="https://files.catbox.moe/xvjbha.gif" alt="Loading...">
-                <div class="gif-loading-text">ခဏစောင့်ပါ...</div>
-            </div>
-        `;
-    }
-}
