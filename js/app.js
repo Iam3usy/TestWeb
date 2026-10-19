@@ -153,6 +153,7 @@ function renderMainContent(path, container) {
     }
 }
 
+
 // Model Page (Col B = model_name, Col D = model)
 async function loadModelPageData() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -164,13 +165,12 @@ async function loadModelPageData() {
         const response = await fetch(SCRIPT_API_URL);
         const data = await response.json();
         if (Array.isArray(data)) {
-            // Title ပါပြီးသား ဗီဒီယိုဒေတာများကိုသာ ယူမည်၊ model_name နှင့် model ကို သေချာ map လုပ်မည်
             const allVideos = data
                 .filter(item => item && cleanText(item.title) !== '' && item.file_id)
                 .map(item => ({
                     title: cleanText(item.title),
-                    model_name: item.model_name ? String(item.model_name).trim() : '', // ကော်လံ B (Model Profile Name)
-                    model: item.model ? String(item.model).trim() : '',                // ကော်လံ D (Video Models)
+                    model_name: item.model_name ? String(item.model_name).trim() : '', 
+                    model: item.model ? String(item.model).trim() : '',                
                     model_image: item.model_image ? String(item.model_image).trim() : '',
                     thumbnail: item.thumbnail ? String(item.thumbnail).trim() : '',
                     file_id: item.file_id ? String(item.file_id).trim() : '',
@@ -212,29 +212,34 @@ function renderModelsAtoZ(videos) {
 
     const modelMap = new Map();
 
-    // ၁။ ကော်လံ B (model_name) ထဲက နာမည်များကို ယူမည် (နာမည်တူများကို ပယ်ဖျက်ပြီး Unique ဖြစ်အောင် လုပ်မည်)
+    // ၁။ ကော်လံ B (model_name) ထဲက နာမည်များကို comma ဖြင့် ခွဲထုတ်၍ Unique ဖြစ်အောင် စုဆောင်းမည်
     videos.forEach(v => {
         if (v.model_name) {
-            v.model_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
-                let lowerKey = name.toLowerCase();
-                if (!modelMap.has(lowerKey)) {
-                    modelMap.set(lowerKey, { name: name, image: v.model_image || '', count: 0 });
-                } else {
-                    let m = modelMap.get(lowerKey);
-                    if ((!m.image || m.image.includes('placeholder')) && v.model_image) {
-                        m.image = v.model_image;
+            v.model_name.split(',').forEach(rawName => {
+                let name = rawName.trim();
+                if (name !== '') {
+                    // Unique ဖြစ်စေရန် lowercase ကို key အဖြစ်သုံးပြီး, display name အတွက် မူရင်းအလှကို ယူမည်
+                    let lowerKey = name.toLowerCase();
+                    if (!modelMap.has(lowerKey)) {
+                        modelMap.set(lowerKey, { name: name, image: v.model_image || '', count: 0 });
+                    } else {
+                        let m = modelMap.get(lowerKey);
+                        if ((!m.image || m.image.includes('placeholder')) && v.model_image) {
+                            m.image = v.model_image;
+                        }
                     }
                 }
             });
         }
     });
 
-    // ၂။ ကော်လံ D (model) ထဲကို စစ်ပြီး တစ်ကားချင်းစီအတွက် Count အမှန်ကို ရေတွက်ထည့်သွင်းမည်
+    // ၂။ ကော်လံ D (model) ထဲတွင် ပါဝင်မှုကို စစ်ပြီး တွေ့တိုင်း count ကို တိုးပေးမည်
     videos.forEach(v => {
         if (v.model) {
-            v.model.split(',').map(n => n.trim().toLowerCase()).forEach(vModelName => {
-                if (modelMap.has(vModelName)) {
-                    modelMap.get(vModelName).count++;
+            v.model.split(',').forEach(rawModel => {
+                let vModelKey = rawModel.trim().toLowerCase();
+                if (modelMap.has(vModelKey)) {
+                    modelMap.get(vModelKey).count++;
                 }
             });
         }
@@ -264,7 +269,6 @@ function renderModelsAtoZ(videos) {
         `;
     });
 }
-
 
 
 
