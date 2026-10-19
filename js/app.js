@@ -211,28 +211,29 @@ function renderModelsAtoZ(videos) {
 
     const modelMap = new Map();
 
-    // 1st Pass: model_name (Col A) ကို အဓိကသုံး၍ မော်ဒယ်စာရင်း အပြည့်အစုံဖော်ပြရန် (ဇာတ်ကားမရှိသူများပါမပျောက်စေရန်)
+    // ၁။ ကော်လံ B (model_name) ထဲက နာမည်တွေကို ယူမည် (နာမည်တူများကို ပယ်ဖျက်ပြီး Unique ဖြစ်အောင် လုပ်မည်)
     videos.forEach(v => {
         if (v.model_name) {
             v.model_name.split(',').map(n => n.trim()).filter(n => n !== '').forEach(name => {
                 let lowerKey = name.toLowerCase();
                 if (!modelMap.has(lowerKey)) {
-                    modelMap.set(lowerKey, { name, image: v.model_image || '', count: 0 });
+                    modelMap.set(lowerKey, { name: name, image: v.model_image || '', count: 0 });
                 } else {
                     let m = modelMap.get(lowerKey);
-                    if ((!m.image || m.image.includes('placeholder')) && v.model_image) m.image = v.model_image;
+                    if ((!m.image || m.image.includes('placeholder')) && v.model_image) {
+                        m.image = v.model_image;
+                    }
                 }
             });
         }
     });
 
-    // 2nd Pass: model (Col D) တွင် ပါဝင်မှုအလိုက် Count အမှန်ကို ရေတွက်ခြင်း
+    // ၂။ ကော်လံ D (model) ထဲကို စစ်ပြီး တစ်ကားချင်းစီအတွက် Count အမှန်ကို ရေတွက်ထည့်သွင်းမည် (Comma ဖြင့် ၂ ယောက်ပါလည်း ၂ ဖက်စလုံးကို Count တိုးပေးမည်)
     videos.forEach(v => {
         if (v.model) {
-            let vModels = v.model.split(',').map(n => n.trim().toLowerCase());
-            modelMap.forEach((mObj, lowerKey) => {
-                if (vModels.includes(lowerKey)) {
-                    mObj.count++;
+            v.model.split(',').map(n => n.trim().toLowerCase()).forEach(vModelName => {
+                if (modelMap.has(vModelName)) {
+                    modelMap.get(vModelName).count++;
                 }
             });
         }
@@ -244,6 +245,7 @@ function renderModelsAtoZ(videos) {
         return;
     }
 
+    // ၃။ ကဒ်ပြားများ တည်ဆောက်ခြင်း
     modelsList.forEach(m => {
         const hasValidImage = m.image && !m.image.includes('placeholder');
         const imageSrc = hasValidImage ? m.image : '';
@@ -261,7 +263,6 @@ function renderModelsAtoZ(videos) {
         `;
     });
 }
-
 function renderVideosForModel(selectedModel, videos) {
     const container = document.getElementById('videoContainer');
     if (!container) return;
